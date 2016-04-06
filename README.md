@@ -7,7 +7,7 @@ This code is adopted from https://github.com/ggloor/miseq_bin/blob/master/macqii
 Align sequences with muscle (http://www.drive5.com/muscle/manual)
 
 ```
-muscle -in ../OTU_seed_seqs.fa -out all_seed_OTUs_bad.mfa
+nohup ./muscle -in data/OTU_seed_seqs.fa -out data/all_seed_OTUs_bad.mfa > muscle_nohup.out 2>&1&
 ```
 
 Fix the formatting
