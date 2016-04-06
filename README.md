@@ -20,7 +20,7 @@ rm data/all_seed_OTUs_bad.mfa
 Build tree with FastTree
 
 ```
-FastTree -nt data/all_seed_OTUs.mfa > data/OTU_seqs.tre
+./FastTree/FastTree -nt data/all_seed_OTUs.mfa > data/OTU_seqs.tre
 ```
 
 ## biplot, bargraph dendrogram, ALDEx2
