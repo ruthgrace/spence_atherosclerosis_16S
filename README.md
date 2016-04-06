@@ -13,14 +13,14 @@ nohup ./muscle -in data/OTU_seed_seqs.fa -out data/all_seed_OTUs_bad.mfa > muscl
 Fix the formatting
 
 ``` 
-awk '/^>/{gsub(/lcl\|[0-9]+\|num\|[0-9]+\|OTU\|/, "")}; 1' all_seed_OTUs_bad.mfa > all_seed_OTUs.mfa
-rm all_seed_OTUs_bad.mfa
+awk '/^>/{gsub(/lcl\|[0-9]+\|num\|[0-9]+\|OTU\|/, "")}; 1' data/all_seed_OTUs_bad.mfa > data/all_seed_OTUs.mfa
+rm data/all_seed_OTUs_bad.mfa
 ```
 
 Build tree with FastTree
 
 ```
-FastTree -nt all_seed_OTUs.mfa > OTU_seqs.tre
+FastTree -nt data/all_seed_OTUs.mfa > data/OTU_seqs.tre
 ```
 
 ## biplot, bargraph dendrogram, ALDEx2
