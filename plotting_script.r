@@ -119,65 +119,43 @@ plot.biplot <- function(d.adj.zero,my.col,groups,legend.col) {
   expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
   legend("bottomleft",inset=c(-0.15,-0.25),levels(groups),pch=19,col=legend.col)
   barplot(d.pcx$sdev^2/mvar(d.clr),  ylab="variance explained", xlab="Component", main="Scree plot")
+  return(d.clr)
 }
 
 pdf("biplots.pdf")
 
-plot.biplot(d.adj.zero,my.col,groups,c("purple","blue","red"))
+d.clr <- plot.biplot(d.adj.zero,my.col,groups,c("purple","blue","red"))
 
-plot.biplot(d.extreme.adj.zero,my.extreme.col,groups.extreme,c("blue","red"))
+d.extreme.clr <- plot.biplot(d.extreme.adj.zero,my.extreme.col,groups.extreme,c("blue","red"))
 
 dev.off()
 
+plot.dendogram.barplot <- function(d.clr, taxa.col, d.names, groups) {
+  d.dist <- dist(d.clr, method="euclidian")
+  d.conditions <- as.character(groups)
+  d.conditions <- gsub(" ","_",d.conditions)
+  attributes(d.dist)$Labels <- paste(d.conditions, attributes(d.dist)$Labels, sep="_")
+  d.hc <- hclust(d.dist, method="ward.D2")
+  d.order <- d.adj.zero[,d.hc$order]
+  d.acomp <- acomp(t(d.order))
 
-# generate the distance matrix
-d.dist <- dist(d.clr, method="euclidian")
-d.extreme.dist <- dist(d.extreme.clr, method="euclidian")
-
-# add condition onto labels of 16S hclust data
-d.conditions <- as.character(groups)
-d.conditions <- gsub(" ","_",d.conditions)
-attributes(d.dist)$Labels <- paste(d.conditions, attributes(d.dist)$Labels, sep="_")
-
-# add condition onto labels of 16S hclust data
-d.extreme.conditions <- as.character(groups.extreme)
-d.extreme.conditions <- gsub(" ","_",d.extreme.conditions)
-attributes(d.extreme.dist)$Labels <- paste(d.extreme.conditions, attributes(d.extreme.dist)$Labels, sep="_")
-
-
-# cluster the data
-d.hc <- hclust(d.dist, method="ward.D2")
-d.extreme.hc <- hclust(d.extreme.dist, method="ward.D2")
-
-# now re-order the data to plot the barplot in the same order
-d.order <- d.adj.zero[,d.hc$order]
-d.extreme.order <- d.extreme[,d.extreme.hc$order]
-
-d.acomp <- acomp(t(d.order))
-d.extreme.acomp <- acomp(t(d.extreme.order))
+  layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(8,10), height=c(4,4))
+  par(mar=c(2,1,1,1)+0.1)
+  # plot the dendrogram
+  plot(d.hc, cex=0.6)
+  # plot the barplot below
+  barplot(d.acomp, legend.text=F, col=as.character(taxa.col[,2]), axisnames=F, border=NA, xpd=T)
+  par(mar=c(0,1,1,1)+0.1)
+  # and the legend
+  plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
+  legend(x="center", legend=d.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
+}
 
 pdf("dendogram_barplot.pdf")
 
-layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(8,10), height=c(4,4))
-par(mar=c(2,1,1,1)+0.1)
-# plot the dendrogram
-plot(d.hc, cex=0.6)
-# plot the barplot below
-barplot(d.acomp, legend.text=F, col=as.character(taxa.col[,2]), axisnames=F, border=NA, xpd=T)
-par(mar=c(0,1,1,1)+0.1)
-# and the legend
-plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-legend(x="center", legend=d.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
+plot.dendogram.barplot(d.clr,taxa.col,d.names,groups)
 
-layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(8,10), height=c(4,4))
-# plot the dendrogram
-plot(d.extreme.hc, cex=0.6)
-# plot the barplot below
-barplot(d.extreme.acomp, legend.text=F, col=as.character(taxa.col[,2]), axisnames=F, border=NA, xpd=T)
-par(mar=c(0,1,1,1)+0.1)
-# and the legend
-plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-legend(x="center", legend=d.extreme.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
+plot.dendogram.barplot(d.extreme.clr,taxa.col,d.extreme.names,groups.extreme)
 
 dev.off()
 
