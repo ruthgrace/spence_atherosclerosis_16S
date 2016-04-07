@@ -73,7 +73,6 @@ write.table(weighted,file="weighted_distance_matrix.txt",sep="\t",quote=FALSE)
 write.table(information,file="information_distance_matrix.txt",sep="\t",quote=FALSE)
 write.table(ratio_no_log,file="ratio_normalize_distance_matrix.txt",sep="\t",quote=FALSE)
 
-#conditions (bv - bacterial vaginosis as scored by nugent/amsel, i - intermediate, n - normal/healthy)
 colnames(metadata) <- gsub(" ",".",colnames(metadata))
 residuals <- metadata$Standardized.Residual
 groups <- rep("NA",length(residuals))
@@ -169,7 +168,63 @@ plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pc
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPSys, "Systolic Blood Pressure", c("blue","red","purple"))
 
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPDias, "Diastolic Blood Pressure", c("blue","red","purple"))
-0
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$chol, "Cholesterol", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$trig, "Triglycerides", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$hdl, "HDL", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$ldl, "LDL", c("blue","red","purple"))
+
+dev.off()
+
+ordered.res <- order(metadata$Standardized.Residual,decreasing=TRUE)
+decile <- round(nrow(metadata)/10)
+top.decile <- ordered.res[c(1:decile)]
+bottom.decile <- ordered.res[c((length(ordered.res)-decile+1):length(ordered.res))]
+otu.tab.rarefy <- otu.tab.rarefy[c(top.decile,bottom.decile),]
+otu.tab <- otu.tab[c(top.decile,bottom.decile),]
+groups <- c(rep("Top decile",decile),rep("Bottom decile",decile))
+groups <- as.factor(groups)
+
+#calculate distance matrix
+unweighted <- getDistanceMatrix(otu.tab.rarefy,tree,method="unweighted",verbose=TRUE)
+all.dist.mat <- getDistanceMatrix(otu.tab,tree,method="all",verbose=TRUE)
+
+weighted <- all.dist.mat[["weighted"]]
+information <- all.dist.mat[["information"]]
+ratio_no_log <- all.dist.mat[["ratio_no_log"]]
+
+#output distance matrices
+write.table(unweighted,file="unweighted_distance_matrix_extreme_deciles.txt",sep="\t",quote=FALSE)
+write.table(weighted,file="weighted_distance_matrix_extreme_deciles.txt",sep="\t",quote=FALSE)
+write.table(information,file="information_distance_matrix_extreme_deciles.txt",sep="\t",quote=FALSE)
+write.table(ratio_no_log,file="ratio_normalize_distance_matrix_extreme_deciles.txt",sep="\t",quote=FALSE)
+
+unweighted.pcoa <- pcoa(unweighted)
+weighted.pcoa <- pcoa(weighted)
+information.pcoa <- pcoa(information)
+ratio_no_log.pcoa <- pcoa(ratio_no_log)
+
+pdf("pcoa_plots_extreme_deciles.pdf")
+
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, groups, "principal coordinate analysis", c("purple","blue","red"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$TPAmm2, "TPA mm2", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$Age, "Age", c("blue","red","purple"))
+
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$Sex, "Sex", c("blue","red","purple"))
+
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$smoker, "Smoking", c("blue","purple","red"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$PackYears, "Pack Years", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPSys, "Systolic Blood Pressure", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPDias, "Diastolic Blood Pressure", c("blue","red","purple"))
+
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$chol, "Cholesterol", c("blue","red","purple"))
 
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$trig, "Triglycerides", c("blue","red","purple"))

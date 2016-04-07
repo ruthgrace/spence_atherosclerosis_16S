@@ -4,14 +4,22 @@ library(compositions)
 library(ALDEx2)
 library(stringr)
 
-metagenomic_samples <- c("CL_119", "CL_139", "CL_141", "CL_144", "CL_160", "CL_165", "CL_166", "CL_169", "CL_173", "CL_177", "HLD_100", "HLD_102", "HLD_111", "HLD_112", "HLD_23", "HLD_28", "HLD_47", "HLD_72", "HLD_80", "HLD_85")
-
 # read metadata for 16S samples
-MyMeta<- read.table("../exponentUnifrac/data/nash_data/metadata.txt", header=T, sep="\t", row.names=1, comment.char="", check.names=FALSE)
-metadata <- MyMeta[grepl("a$",rownames(MyMeta)),]
-rownames(metadata) <- gsub("a$","",rownames(metadata))
-samples <- str_extract(rownames(metadata), "^[A-Z]*-[0-9]*")
-samples <- gsub("-","_",samples)
+MyMeta<- read.table("data/metadata.txt", header=T, sep="\t", row.names=1, comment.char="", check.names=FALSE)
+
+# clean up metadata
+metadata <- MyMeta
+# 2nd column has nothing except an N in the Total row
+metadata <- metadata[,c(2:ncol(metadata))]
+# remove Total row
+metadata <- metadata[c(1:(nrow(metadata)-1)),]
+# make Sex be factor of either M or F (there's a 316 in there from Total)
+metadata$Sex <- as.character(metadata$Sex)
+metadata$Sex <- as.factor(metadata$Sex)
+# make smoker be factor of N Q or Y (there's a 316 in there from Total)
+metadata$smoker <- as.character(metadata$smoker)
+metadata$smoker <- as.factor(metadata$smoker)
+
 unique.samples <- unique(samples)
 metadata <- metadata[match(unique.samples,samples),]
 rownames(metadata) <- unique.samples
