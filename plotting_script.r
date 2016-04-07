@@ -91,15 +91,6 @@ taxa.col <- data.frame(as.character(rownames(d)),rownames(d))
 colnames(taxa.col) <- c("taxon","color")
 taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
 
-d.prop <- apply(d.adj.zero,2,function(x){x/sum(x)})
-d.extreme.prop <- apply(d.extreme.adj.zero,2,function(x){x/sum(x)})
-
-d.clr <- t(apply(d.prop,2,function(x){log(x) - mean(log(x))}))
-d.extreme.clr <- t(apply(d.extreme.prop,2,function(x){log(x) - mean(log(x))}))
-
-d.pcx <- prcomp(d.clr)
-d.extreme.pcx <- prcomp(d.extreme.clr)
-
 conds <- data.frame(as.character(groups))
 colnames(conds) <- "cond"
 
@@ -112,7 +103,10 @@ my.col[which(groups == "Unexplained")] <- "red"
 
 my.extreme.col <- c(rep("red",20),rep("blue",20))
 
-plot.biplot <- function(d.pcx,d.clr,my.col,groups) {
+plot.biplot <- function(d.adj.zero,my.col,groups,legend.col) {
+  d.prop <- apply(d.adj.zero,2,function(x){x/sum(x)})
+  d.clr <- t(apply(d.prop,2,function(x){log(x) - mean(log(x))}))
+  d.pcx <- prcomp(d.clr)
   layout(matrix(c(1,2),1,2, byrow=T), widths=c(6,2), heights=c(8,3))
   par(mgp=c(2,0.5,0), xpd=TRUE)
   # make a covariance biplot of the data with compositions function
@@ -123,15 +117,15 @@ plot.biplot <- function(d.pcx,d.clr,my.col,groups) {
   ylab=paste("PC2 ", round (sum(d.pcx$sdev[2]^2)/mvar(d.clr),3), sep=""),
   xlabs.col=my.col,
   expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-  legend("bottomleft",inset=c(-0.15,-0.25),levels(groups),pch=19,col=c("purple","blue","red"),)
+  legend("bottomleft",inset=c(-0.15,-0.25),levels(groups),pch=19,col=legend.col)
   barplot(d.pcx$sdev^2/mvar(d.clr),  ylab="variance explained", xlab="Component", main="Scree plot")
 }
 
 pdf("biplots.pdf")
 
-plot.biplot(d.pcx,d.clr,my.col,groups)
+plot.biplot(d.adj.zero,my.col,groups,c("purple","blue","red"))
 
-plot.biplot(d.extreme.pcx,d.extreme.clr,my.extreme.col,groups.extreme)
+plot.biplot(d.extreme.adj.zero,my.extreme.col,groups.extreme,c("blue","red"))
 
 dev.off()
 
