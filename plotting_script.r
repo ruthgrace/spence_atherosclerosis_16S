@@ -110,28 +110,28 @@ my.col[which(groups == "Explained")] <- "purple"
 my.col[which(groups == "Protected")] <- "blue"
 my.col[which(groups == "Unexplained")] <- "red"
 
+my.extreme.col <- c(rep("red",20),rep("blue",20))
+
+plot.biplot <- function(d.pcx,d.clr,my.col,groups) {
+  layout(matrix(c(1,2),1,2, byrow=T), widths=c(6,2), heights=c(8,3))
+  par(mgp=c(2,0.5,0), xpd=TRUE)
+  # make a covariance biplot of the data with compositions function
+  coloredBiplot(d.pcx, cex=c(0.6, 0.6),
+  col=rgb(0,0,0,0.5),
+  arrow.len=0.05,
+  xlab=paste("PC1 ", round (sum(d.pcx$sdev[1]^2)/mvar(d.clr),3), sep=""),
+  ylab=paste("PC2 ", round (sum(d.pcx$sdev[2]^2)/mvar(d.clr),3), sep=""),
+  xlabs.col=my.col,
+  expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
+  legend("bottomleft",inset=c(-0.15,-0.25),levels(groups),pch=19,col=c("purple","blue","red"),)
+  barplot(d.pcx$sdev^2/mvar(d.clr),  ylab="variance explained", xlab="Component", main="Scree plot")
+}
+
 pdf("biplots.pdf")
 
-layout(matrix(c(1,2),1,2, byrow=T), widths=c(6,2), heights=c(8,3))
-par(mgp=c(2,0.5,0))
-# make a covariance biplot of the data with compositions function
-coloredBiplot(d.pcx, cex=c(0.6, 0.6),
-col=rgb(0,0,0,0.5),
-arrow.len=0.05,
-xlab=paste("PC1 ", round (sum(d.pcx$sdev[1]^2)/mvar(d.clr),3), sep=""),
-ylab=paste("PC2 ", round (sum(d.pcx$sdev[2]^2)/mvar(d.clr),3), sep=""),
-xlabs.col=my.col,
-expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-barplot(d.pcx$sdev^2/mvar(d.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
+plot.biplot(d.pcx,d.clr,my.col,groups)
 
-coloredBiplot(d.extreme.pcx, cex=c(0.6, 0.6),
-col=rgb(0,0,0,0.5),
-arrow.len=0.05,
-xlab=paste("PC1 ", round (sum(d.extreme.pcx$sdev[1]^2)/mvar(d.extreme.clr),3), sep=""),
-ylab=paste("PC2 ", round (sum(d.extreme.pcx$sdev[2]^2)/mvar(d.extreme.clr),3), sep=""),
-xlabs.col=my.col,
-expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-barplot(d.extreme.pcx$sdev^2/mvar(d.extreme.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
+plot.biplot(d.extreme.pcx,d.extreme.clr,my.extreme.col,groups.extreme)
 
 dev.off()
 
