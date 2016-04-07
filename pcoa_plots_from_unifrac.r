@@ -25,7 +25,7 @@ MyMeta<- read.table("data/metadata.txt", header=T, sep="\t", row.names=1, commen
 
 # clean up metadata
 metadata <- MyMeta
-# 2nd column has nothing except an N in the Total row
+# first column has nothing except an N in the Total row
 metadata <- metadata[,c(2:ncol(metadata))]
 # remove Total row
 metadata <- metadata[c(1:(nrow(metadata)-1)),]

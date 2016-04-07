@@ -9,7 +9,7 @@ MyMeta<- read.table("data/metadata.txt", header=T, sep="\t", row.names=1, commen
 
 # clean up metadata
 metadata <- MyMeta
-# 2nd column has nothing except an N in the Total row
+# first column has nothing except an N in the Total row
 metadata <- metadata[,c(2:ncol(metadata))]
 # remove Total row
 metadata <- metadata[c(1:(nrow(metadata)-1)),]
@@ -20,164 +20,95 @@ metadata$Sex <- as.factor(metadata$Sex)
 metadata$smoker <- as.character(metadata$smoker)
 metadata$smoker <- as.factor(metadata$smoker)
 
-unique.samples <- unique(samples)
-metadata <- metadata[match(unique.samples,samples),]
-rownames(metadata) <- unique.samples
+colnames(metadata) <- gsub(" ",".",colnames(metadata))
 
-# get metaphlan data
-d <- read.table("data/summary_all_count.txt", header=T, row.names=1, sep="\t",quote="",comment.char="",stringsAsFactors=FALSE)
+# get 16S rRNA gene sequencing count
+otu.tab <- read.table("data/td_OTU_tag_mapped_lineage.txt", header=T, row.names=1, sep="\t",quote="",comment.char="",stringsAsFactors=FALSE,check.names=FALSE)
 
-d <- d[,(grepl("CL*", colnames(d)) | grepl("HLD*", colnames(d)))]
-
-# for some reason the unclassified species has a bunch of dashes instead of numbers
-d <- d[which(rownames(d)!="s__unclassified"),]
-d.rownames <- rownames(d)
-d <- apply(d,2,function(x) as.numeric(x))
-rownames(d) <- d.rownames
-
-# remove all features with zero counts for all samples
-d.sum <- apply(d,1,sum)
-
-d <- d[which(d.sum>0),]
-
-original.data <- d
-
-rownames(d) <- gsub("s__","",rownames(d))
-rownames(d) <- sub("_"," ",rownames(d))
-
-# get genus level for metaphlan
-species <- rownames(d)
-genus <- str_extract(species,"^[A-Za-z]*")
-
-d.genus <- aggregate(d,list(genus),sum)
-rownames(d.genus) <- d.genus$Group.1
-d.genus <- d.genus[,c(2:ncol(d.genus))]
-colnames(d.genus) <- str_extract(colnames(d.genus),"^[A-Z]*_[0-9]*")
-
-# get genus level for 16S
-otu.tab <- read.table("data/summed_data_baseline_only_with_taxonomy.txt", header=T, sep="\t", row.names=1, comment.char="", check.names=FALSE)
-
-colnames(otu.tab)[c(1:(ncol(otu.tab)-1))] <- gsub("-","_",colnames(otu.tab)[c(1:(ncol(otu.tab)-1))])
-
-colnames(otu.tab)[c(1:(ncol(otu.tab)-1))] <- str_extract(colnames(otu.tab)[c(1:(ncol(otu.tab)-1))],"[A-Z]+_[0-9]+")
+# make samples consistent between metadata and count data
+metadata.samples <- match(colnames(otu.tab),rownames(metadata))
+metadata.samples <- metadata.samples[which(!is.na(metadata.samples))]
+metadata <- metadata[metadata.samples,]
 
 taxonomy <- otu.tab$taxonomy
 
 otu.tab <- otu.tab[,c(1:(ncol(otu.tab)-1))]
-otu.genus <- c(as.character(taxonomy))
+otu.tab <- otu.tab[,which(colnames(otu.tab) %in% rownames(metadata))]
+
+otu.tab <- as.matrix(t(otu.tab))
+
+# remove all features with less than 1% abundance in all samples
+otu.tab.sum <- apply(otu.tab,1,sum)
+otu.tab.sum.threshhold <- otu.tab.sum*0.01
+otu.tab.filter <- apply(otu.tab,2, function(x) { return(length(which(x > otu.tab.sum.threshhold))) } )
+otu.tab <- otu.tab[,which(otu.tab.filter > 0)]
+
+taxonomy <- taxonomy[which(otu.tab.filter > 0)]
+
+otu.sum <- apply(otu.tab,2,sum)
+otu.tab <- otu.tab[,order(otu.sum,decreasing=TRUE)]
+taxonomy <- taxonomy[order(otu.sum,decreasing=TRUE)]
+
+original.data <- otu.tab
+
+otu.sp <- c(as.character(taxonomy))
 
 for (i in c(1:length(taxonomy))) {
-  otu.genus[i] <- strsplit(otu.genus[i],c(";"))[[1]][6]
+  otu.sp[i] <- paste(strsplit(otu.sp[i],c(";"))[[1]][c(6,7)],collapse="")
 }
 
-otu.tab.genus <- aggregate(otu.tab,list(otu.genus),sum)
-rownames(otu.tab.genus) <- otu.tab.genus$Group.1
-otu.tab.genus <- otu.tab.genus[,c(2:ncol(otu.tab.genus))]
-
-remove <- c("Incertae_Sedis", "unclassified")
-
-print(paste(sum(otu.tab.genus["Incertae_Sedis",]), " Incertae_Sedis out of",sum(otu.tab.genus),"total counts"))
-# [1] "1156172  Incertae_Sedis out of 7472468 total counts"
-# > 1156172/7472468
-# [1] 0.1547242
-
-print(paste(sum(otu.tab.genus["unclassified",]), " unclassified out of",sum(otu.tab.genus),"total counts"))
-# [1] "937127  unclassified out of 7472468 total counts"
-# > 937127/7472468
-# [1] 0.1254106
-
-otu.tab.genus <- otu.tab.genus[which(! rownames(otu.tab.genus) %in% remove),]
+residual.order <- order(metadata$Standardized.Residual,decreasing=TRUE)
+decile <- round(nrow(metadata)/10)
+top.decile <- residual.order[c(1:decile)]
+bottom.decile <- residual.order[c(nrow(metadata)-decile+1):nrow(metadata)]
+otu.tab.extreme <- otu.tab[c(top.decile,bottom.decile),]
 
 # conditions: Originally 0 meant steatohepatosis, and 1 meant NASH
-groups <- metadata$SSvsNASH[match(colnames(otu.tab.genus),rownames(metadata))]
-originalgroups <- groups
-
-# Make healthy represented by 0, SS by 1, NASH by 2
-groups <- groups + 1;
-groups[which(is.na(groups))] <- 0
-
-# make healthy 1, ss 2, nash 3 (healthy metagenomic will be 0 and nash metagenomic will be 4)
-groups <- groups + 1
-
-# mark healthy samples selected for metagenomic study
-groups[which(colnames(otu.tab.genus) %in% metagenomic_samples & groups == 1)] <- 0
-
-# mark nash samples selected for metagenomic study
-groups[which(colnames(otu.tab.genus) %in% metagenomic_samples & groups == 3)] <- 4
-
-groups[which(groups == 0)] <- "Healthy Metagenomic"
-groups[which(groups == 1)] <- "Healthy"
-groups[which(groups == 2)] <- "SS"
-groups[which(groups == 3)] <- "NASH"
-groups[which(groups == 4)] <- "NASH Metagenomic"
-
+residuals <- metadata$Standardized.Residual
+groups <- rep("NA",length(residuals))
+groups[which(residuals < -1)] <- "Protected"
+groups[which(residuals >= -1 & residuals < 1)] <- "Explained"
+groups[which(residuals >= 1)] <- "Unexplained"
 groups <- as.factor(groups)
 
+groups.extreme <- c(rep("Top decile",decile),rep("Bottom decile",decile))
+groups.extreme <- as.factor(groups.extreme)
 
-sample.sum <- apply(d,2,sum)
-one.percent <- sample.sum*0.01
+d <- t(otu.tab)
+d.extreme <- t(otu.tab.extreme)
+rownames(d) <- otu.sp
+rownames(d.extreme) <- otu.sp
+# it just happens that there are no zero count features in d.extreme, so it's not necessary to filter
 
 # adjust zeros
 d.adj.zero <- t(cmultRepl(t(d),method="CZM"))
-d.genus.adj.zero <- t(cmultRepl(t(d.genus),method="CZM"))
-otu.tab.genus.adj.zero <- t(cmultRepl(t(otu.tab.genus),method="CZM"))
-
-filter <- apply(d,1,function(x) length(which(x > one.percent)))
-d.filter <- d.adj.zero[which(filter > 0),]
-
-d.filter.counts <- d[which(filter>0),]
-
-d.adj.zero <- d.adj.zero[order(apply(d.adj.zero,1,sum),decreasing=TRUE),]
-d.filter <- d.filter[order(apply(d.filter,1,sum),decreasing=TRUE),]
-d.genus.adj.zero <- d.genus.adj.zero[order(apply(d.genus.adj.zero,1,sum),decreasing=TRUE),]
-otu.tab.genus.adj.zero <- otu.tab.genus.adj.zero[order(apply(otu.tab.genus.adj.zero,1,sum),decreasing=TRUE),]
+d.extreme.adj.zero <- t(cmultRepl(t(d.extreme),method="CZM"))
 
 d.names <- rownames(d.adj.zero)
-d.filter.names <- rownames(d.filter)
-d.genus.names <- rownames(d.genus.adj.zero)
-otu.tab.genus.names <- rownames(otu.tab.genus.adj.zero)
+d.extreme.names <- rownames(d.extreme.adj.zero)
 
 taxa.col <- data.frame(as.character(rownames(d)),rownames(d))
 colnames(taxa.col) <- c("taxon","color")
 taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
 
-taxa.filter.col <- data.frame(as.character(rownames(d.filter)),rownames(d.filter))
-colnames(taxa.filter.col) <- c("taxon","color")
-taxa.filter.col[,2] <- taxa.col[match(taxa.filter.col[,1],taxa.col[,1]),2]
-
-all.genus <- unique(c(rownames(d.genus),rownames(otu.tab.genus)))
-all.genus.colors <- distinctColorPalette(length(all.genus))
-
-taxa.d.genus.col <- data.frame(rownames(d.genus),rownames(d.genus))
-colnames(taxa.d.genus.col) <- c("taxon","color")
-taxa.d.genus.col[,2] <- all.genus.colors[match(rownames(d.genus),all.genus)]
-
-taxa.otu.tab.genus.col <- data.frame(rownames(otu.tab.genus),rownames(otu.tab.genus))
-colnames(taxa.otu.tab.genus.col) <- c("taxon","color")
-taxa.otu.tab.genus.col[,2] <- all.genus.colors[match(rownames(otu.tab.genus),all.genus)]
-
-
 d.prop <- apply(d.adj.zero,2,function(x){x/sum(x)})
-d.filter.prop <- apply(d.filter,2,function(x) {x/sum(x)})
-d.genus.prop <- apply(d.genus.adj.zero, 2,function(x) {x/sum(x)})
-otu.tab.genus.prop <- apply(otu.tab.genus.adj.zero, 2,function(x) {x/sum(x)})
-
+d.extreme.prop <- apply(d.extreme.adj.zero,2,function(x){x/sum(x)})
 
 d.clr <- t(apply(d.prop,2,function(x){log(x) - mean(log(x))}))
-d.filter.clr <- t(apply(d.filter.prop,2,function(x){log(x) - mean(log(x))}))
-d.genus.clr <- t(apply(d.genus.prop,2,function(x){log(x) - mean(log(x))}))
-otu.tab.genus.clr <- t(apply(otu.tab.genus.prop,2,function(x){log(x) - mean(log(x))}))
-
+d.extreme.clr <- t(apply(d.extreme.prop,2,function(x){log(x) - mean(log(x))}))
 
 d.pcx <- prcomp(d.clr)
-d.filter.pcx <- prcomp(d.filter.clr)
-d.genus.pcx <- prcomp(d.genus.clr)
-otu.tab.genus.pcx <- prcomp(otu.tab.genus.clr)
+d.extreme.pcx <- prcomp(d.extreme.clr)
 
-conds <- data.frame(c(rep("NASH",10),rep("Healthy",10)))
+conds <- data.frame(as.character(groups))
 colnames(conds) <- "cond"
 
-palette=palette(c(rgb(1,0,0,0.6), rgb(0,0,1,0.6), rgb(0,1,1,0.6)))
+palette=palette(c(rgb(1,0,0,0.6), "green","black", rgb(0,1,1,0.6)))
+
+my.col <- rep("NA",length(groups))
+my.col[which(groups == "Explained")] <- "purple"
+my.col[which(groups == "Protected")] <- "blue"
+my.col[which(groups == "Unexplained")] <- "red"
 
 pdf("biplots.pdf")
 
@@ -185,36 +116,22 @@ layout(matrix(c(1,2),1,2, byrow=T), widths=c(6,2), heights=c(8,3))
 par(mgp=c(2,0.5,0))
 # make a covariance biplot of the data with compositions function
 coloredBiplot(d.pcx, cex=c(0.6, 0.6),
+col=rgb(0,0,0,0.5),
 arrow.len=0.05,
 xlab=paste("PC1 ", round (sum(d.pcx$sdev[1]^2)/mvar(d.clr),3), sep=""),
 ylab=paste("PC2 ", round (sum(d.pcx$sdev[2]^2)/mvar(d.clr),3), sep=""),
-xlabs.col=c(rep("red",10),rep("black",10)),
+xlabs.col=my.col,
 expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
 barplot(d.pcx$sdev^2/mvar(d.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
 
-coloredBiplot(d.filter.pcx, cex=c(0.6, 0.6),
+coloredBiplot(d.extreme.pcx, cex=c(0.6, 0.6),
+col=rgb(0,0,0,0.5),
 arrow.len=0.05,
-xlab=paste("PC1 ", round (sum(d.filter.pcx$sdev[1]^2)/mvar(d.filter.clr),3), sep=""),
-ylab=paste("PC2 ", round (sum(d.filter.pcx$sdev[2]^2)/mvar(d.filter.clr),3), sep=""),
-xlabs.col=c(rep("red",10),rep("black",10)),
+xlab=paste("PC1 ", round (sum(d.extreme.pcx$sdev[1]^2)/mvar(d.extreme.clr),3), sep=""),
+ylab=paste("PC2 ", round (sum(d.extreme.pcx$sdev[2]^2)/mvar(d.extreme.clr),3), sep=""),
+xlabs.col=my.col,
 expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-barplot(d.filter.pcx$sdev^2/mvar(d.filter.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
-
-coloredBiplot(d.genus.pcx, cex=c(0.6, 0.6),
-arrow.len=0.05,
-xlab=paste("PC1 ", round (sum(d.genus.pcx$sdev[1]^2)/mvar(d.genus.clr),3), sep=""),
-ylab=paste("PC2 ", round (sum(d.genus.pcx$sdev[2]^2)/mvar(d.genus.clr),3), sep=""),
-xlabs.col=c(rep("red",10),rep("black",10)),
-expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-barplot(d.genus.pcx$sdev^2/mvar(d.genus.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
-
-coloredBiplot(otu.tab.genus.pcx, cex=c(0.6, 0.6),
-arrow.len=0.05,
-xlab=paste("PC1 ", round (sum(otu.tab.genus.pcx$sdev[1]^2)/mvar(otu.tab.genus.clr),3), sep=""),
-ylab=paste("PC2 ", round (sum(otu.tab.genus.pcx$sdev[2]^2)/mvar(otu.tab.genus.clr),3), sep=""),
-xlabs.col=c(rep("red",10),rep("black",10)),
-expand=0.8,var.axes=FALSE, scale=1, main="Biplot")
-barplot(otu.tab.genus.pcx$sdev^2/mvar(otu.tab.genus.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
+barplot(d.extreme.pcx$sdev^2/mvar(d.extreme.clr),  ylab="variance explained", xlab="Component", main="Scree plot") # scree plot
 
 dev.off()
 
