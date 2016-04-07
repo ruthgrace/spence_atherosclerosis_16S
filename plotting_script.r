@@ -188,11 +188,11 @@ legend(x="center", legend=d.extreme.names, col=as.character(taxa.col[,2]), lwd=5
 dev.off()
 
 # generate the dataset by making a data frame of
-d.h <- colnames(d)[grep("HLD*", colnames(d))] # Before samples
-d.n <- colnames(d)[grep("CL*", colnames(d))] # After samples
-d.aldex <- data.frame(d[,d.h], d[,d.n]) # make a data frame
+d.h <- colnames(d)[which(groups == "Explained")] # Before samples
+d.n <- colnames(d)[which(groups == "Protected")] # After samples
+d.aldex <- data.frame(d[,d.h], d[,d.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
-conds.aldex <- c(rep("Healthy", 10), rep("NASH", 10))
+conds.aldex <- c(rep("Explained", length(d.h)), rep("Protected", length(d.n)))
 # generate 128 Dirichlet Monte-Carlo replicates
 x <- aldex.clr(d.aldex, mc.samples=128, verbose=FALSE)
 ## [1] "operating in serial mode"
@@ -205,90 +205,92 @@ x.e <- aldex.effect(x, conds.aldex, verbose=FALSE)
 x.all <- data.frame(x.e,x.t)
 
 # generate the dataset by making a data frame of
-d.filter.h <- colnames(d.filter.counts)[grep("HLD*", colnames(d.filter.counts))] # Before samples
-d.filter.n <- colnames(d.filter.counts)[grep("CL*", colnames(d.filter.counts))] # After samples
-d.filter.aldex <- data.frame(d.filter.counts[,d.filter.h], d.filter.counts[,d.filter.n]) # make a data frame
+d.h <- colnames(d)[which(groups == "Explained")] # Before samples
+d.n <- colnames(d)[which(groups == "Unexplained")] # After samples
+d.aldex <- data.frame(d[,d.h], d[,d.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
-conds.aldex <- c(rep("Healthy", 10), rep("NASH", 10))
+conds.aldex <- c(rep("Explained", length(d.h)), rep("Unexplained", length(d.n)))
 # generate 128 Dirichlet Monte-Carlo replicates
-x.filter <- aldex.clr(d.filter.aldex, mc.samples=128, verbose=FALSE)
+x.e.u <- aldex.clr(d.aldex, mc.samples=128, verbose=FALSE)
 ## [1] "operating in serial mode"
 # calculate p values for each replicate and report the mean
-x.filter.t <- aldex.ttest(x.filter, conds.aldex)
+x.e.u.t <- aldex.ttest(x.e.u, conds.aldex)
 # calculate mean effect sizes
-x.filter.e <- aldex.effect(x.filter, conds.aldex, verbose=FALSE)
+x.e.u.e <- aldex.effect(x.e.u, conds.aldex, verbose=FALSE)
 ## [1] "operating in serial mode"
 # save it all in a data frame
-x.filter.all <- data.frame(x.filter.e,x.filter.t)
+x.e.u.all <- data.frame(x.e.u.e,x.e.u.t)
 
 # generate the dataset by making a data frame of
-d.genus.h <- colnames(d.genus)[grep("HLD*", colnames(d.genus))] # Before samples
-d.genus.n <- colnames(d.genus)[grep("CL*", colnames(d.genus))] # After samples
-d.genus.aldex <- data.frame(d.genus[,d.genus.h], d.genus[,d.genus.n]) # make a data frame
+d.h <- colnames(d)[which(groups == "Unexplained")] # Before samples
+d.n <- colnames(d)[which(groups == "Protected")] # After samples
+d.aldex <- data.frame(d[,d.h], d[,d.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
-conds.aldex <- c(rep("Healthy", 10), rep("NASH", 10))
+conds.aldex <- c(rep("Unexplained", length(d.h)), rep("Protected", length(d.n)))
 # generate 128 Dirichlet Monte-Carlo replicates
-x.genus <- aldex.clr(d.genus.aldex, mc.samples=128, verbose=FALSE)
+x.u.p <- aldex.clr(d.aldex, mc.samples=128, verbose=FALSE)
 ## [1] "operating in serial mode"
 # calculate p values for each replicate and report the mean
-x.genus.t <- aldex.ttest(x.genus, conds.aldex)
+x.u.p.t <- aldex.ttest(x.u.p, conds.aldex)
 # calculate mean effect sizes
-x.genus.e <- aldex.effect(x.genus, conds.aldex, verbose=FALSE)
+x.u.p.e <- aldex.effect(x.u.p, conds.aldex, verbose=FALSE)
 ## [1] "operating in serial mode"
 # save it all in a data frame
-x.genus.all <- data.frame(x.genus.e,x.genus.t)
+x.u.p.all <- data.frame(x.u.p.e,x.u.p.t)
+
 
 # generate the dataset by making a data frame of
-otu.tab.genus.h <- colnames(otu.tab.genus)[grepl("^Healthy*",as.character(groups))] # Before samples
-otu.tab.genus.n <- colnames(otu.tab.genus)[grepl("^NASH*",as.character(groups))] # After samples
-otu.tab.genus.aldex <- data.frame(otu.tab.genus[,otu.tab.genus.h], otu.tab.genus[,otu.tab.genus.n]) # make a data frame
+d.extreme.aldex <- data.frame(d.extreme.counts) # make a data frame
 # make the vector of set membership in the same order as
-otu.tab.genus.conds.aldex <- c(rep("Healthy", length(otu.tab.genus.h)), rep("NASH", length(otu.tab.genus.n)))
+conds.aldex <- as.character(groups.extreme)
 # generate 128 Dirichlet Monte-Carlo replicates
-x.otu.tab.genus <- aldex.clr(otu.tab.genus.aldex, mc.samples=128, verbose=FALSE)
+x.extreme <- aldex.clr(d.extreme.aldex, mc.samples=128, verbose=FALSE)
 ## [1] "operating in serial mode"
 # calculate p values for each replicate and report the mean
-x.otu.tab.genus.t <- aldex.ttest(x.otu.tab.genus, otu.tab.genus.conds.aldex)
+x.extreme.t <- aldex.ttest(x.extreme, conds.aldex)
 # calculate mean effect sizes
-x.otu.tab.genus.e <- aldex.effect(x.otu.tab.genus, otu.tab.genus.conds.aldex, verbose=FALSE)
+x.extreme.e <- aldex.effect(x.extreme, conds.aldex, verbose=FALSE)
 ## [1] "operating in serial mode"
 # save it all in a data frame
-x.otu.tab.genus.all <- data.frame(x.otu.tab.genus.e,x.otu.tab.genus.t)
-
+x.extreme.all <- data.frame(x.extreme.e,x.extreme.t)
 
 pdf("aldex_plots.pdf")
 
 layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
 par(mar=c(5,4,4,1)+0.1)
-aldex.plot(x.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.all$effect, x.all$wi.eBH, log="y", pch=19, main="Effect",
+aldex.plot(x.e.p.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
+plot(x.e.p.all$effect, x.e.p.all$wi.eBH, log="y", pch=19, main="Effect",
 cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
-plot(x.all$diff.btw, x.all$wi.eBH, log="y", pch=19, main="Volcano",
+plot(x.e.p.all$diff.btw, x.e.p.all$wi.eBH, log="y", pch=19, main="Volcano",
 cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
 
-aldex.plot(x.filter.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.filter.all$effect, x.filter.all$wi.eBH, log="y", pch=19, main="Effect",
+layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
+par(mar=c(5,4,4,1)+0.1)
+aldex.plot(x.e.u.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
+plot(x.e.u.all$effect, x.e.u.all$wi.eBH, log="y", pch=19, main="Effect",
 cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
-plot(x.filter.all$diff.btw, x.filter.all$wi.eBH, log="y", pch=19, main="Volcano",
+plot(x.e.u.all$diff.btw, x.e.u.all$wi.eBH, log="y", pch=19, main="Volcano",
 cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
 
-aldex.plot(x.genus.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.genus.all$effect, x.genus.all$wi.eBH, log="y", pch=19, main="Effect",
+layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
+par(mar=c(5,4,4,1)+0.1)
+aldex.plot(x.u.p.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
+plot(x.u.p.all$effect, x.u.p.all$wi.eBH, log="y", pch=19, main="Effect",
 cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
-plot(x.genus.all$diff.btw, x.genus.all$wi.eBH, log="y", pch=19, main="Volcano",
+plot(x.u.p.all$diff.btw, x.u.p.all$wi.eBH, log="y", pch=19, main="Volcano",
 cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
 
-aldex.plot(x.otu.tab.genus.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.otu.tab.genus.all$effect, x.otu.tab.genus.all$wi.eBH, log="y", pch=19, main="Effect",
+aldex.plot(x.extreme.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
+plot(x.extreme.all$effect, x.extreme.all$wi.eBH, log="y", pch=19, main="Effect",
 cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
-plot(x.otu.tab.genus.all$diff.btw, x.otu.tab.genus.all$wi.eBH, log="y", pch=19, main="Volcano",
+plot(x.extreme.all$diff.btw, x.extreme.all$wi.eBH, log="y", pch=19, main="Volcano",
 cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
 abline(h=0.05, lty=2)
 
