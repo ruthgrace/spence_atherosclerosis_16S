@@ -106,16 +106,76 @@ weighted.vector <- unlist(weighted[lower.tri(weighted,diag=TRUE)])
 information.vector <- unlist(information[lower.tri(information,diag=TRUE)])
 ratio_no_log.vector <- unlist(ratio_no_log[lower.tri(ratio_no_log,diag=TRUE)])
 
-my.colors <- c("purple","blue","red")
+plot.as.factor <- function(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio.pcoa, factor, name, my.palette) {
+	unweighted.varEx <- getVarExplained(unweighted.pcoa$vectors)
+	weighted.varEx <- getVarExplained(weighted.pcoa$vectors)
+	information.varEx <- getVarExplained(information.pcoa$vectors)
+	ratio_no_log.varEx <- getVarExplained(ratio_no_log.pcoa$vectors)
+	
+	factor <- as.factor(factor)
+	palette(my.palette)
+	par(mar=c(5.1, 5.1, 5.1, 7.1),xpd=TRUE)
+	plot(unweighted.pcoa$vectors[,1],unweighted.pcoa$vectors[,2], col=factor,main=paste("Unweighted UniFrac",name,sep="\n"),xlab=paste("First Component", round(unweighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(unweighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(factor), pch=rep(19,length(factor)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(weighted.pcoa$vectors[,1],weighted.pcoa$vectors[,2], col=factor,main=paste("Weighted UniFrac",name,sep="\n"),xlab=paste("First Component", round(weighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(weighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(factor), pch=rep(19,length(factor)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(information.pcoa$vectors[,1],information.pcoa$vectors[,2], col=factor,main=paste("Information UniFrac",name,sep="\n"),xlab=paste("First Component", round(information.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(information.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(factor), pch=rep(19,length(factor)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(ratio_no_log.pcoa$vectors[,1],ratio_no_log.pcoa$vectors[,2], col=factor,main=paste("Ratio UniFrac",name,sep="\n"),xlab=paste("First Component", round(ratio_no_log.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(ratio_no_log.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)	
+	legend("topright", levels(factor), pch=rep(19,length(factor)), col=palette(), xpd=NA, inset=c(-0.3,0))
+}
+
+plot.as.number <- function(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio.pcoa, numbers, name, my.palette) {
+	unweighted.varEx <- getVarExplained(unweighted.pcoa$vectors)
+	weighted.varEx <- getVarExplained(weighted.pcoa$vectors)
+	information.varEx <- getVarExplained(information.pcoa$vectors)
+	ratio_no_log.varEx <- getVarExplained(ratio_no_log.pcoa$vectors)
+
+	summary(numbers)
+	groups <- rep("NA",length(numbers))
+	groups.quart.1 <- summary(numbers)[2]
+	groups.quart.3 <- summary(numbers)[5]
+	groups[which(numbers <= groups.quart.1)] <- "1st Quartile"
+	groups[which((numbers > groups.quart.1) & (numbers < groups.quart.3))] <- "Middle Half"
+	groups[which(numbers >= groups.quart.3)] <- "3rd Quartile"
+	groups <- as.factor(groups)
+	palette(my.palette)
+	par(mar=c(5.1, 5.1, 5.1, 7.1),xpd=TRUE)
+	plot(unweighted.pcoa$vectors[,1],unweighted.pcoa$vectors[,2], col=groups,main=paste("Unweighted UniFrac",name,sep="\n"),xlab=paste("First Component", round(unweighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(unweighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(groups), pch=rep(19,length(groups)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(weighted.pcoa$vectors[,1],weighted.pcoa$vectors[,2], col=groups,main=paste("Weighted UniFrac",name,sep="\n"),xlab=paste("First Component", round(weighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(weighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(groups), pch=rep(19,length(groups)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(information.pcoa$vectors[,1],information.pcoa$vectors[,2], col=groups,main=paste("Information UniFrac",name,sep="\n"),xlab=paste("First Component", round(information.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(information.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(groups), pch=rep(19,length(groups)), col=palette(), xpd=NA, inset=c(-0.3,0))
+	plot(ratio_no_log.pcoa$vectors[,1],ratio_no_log.pcoa$vectors[,2], col=groups,main=paste("Ratio UniFrac",name,sep="\n"),xlab=paste("First Component", round(ratio_no_log.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(ratio_no_log.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+	legend("topright", levels(groups), pch=rep(19,length(groups)), col=palette(), xpd=NA, inset=c(-0.3,0))
+}
+
 original.palette <- palette()
-palette(my.colors)
 pdf("pcoa_plots.pdf")
 
-#plot pcoa plots
-plot(unweighted.pcoa$vectors[,1],unweighted.pcoa$vectors[,2], col=groups,main="Unweighted UniFrac\nprincipal coordinates analysis",xlab=paste("First Component", round(unweighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(unweighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
-legend(0.07,-0.068,levels(groups),col=palette(),pch=19)
-plot(weighted.pcoa$vectors[,1],weighted.pcoa$vectors[,2], col=groups,main="Weighted UniFrac\nprincipal coordinates analysis",xlab=paste("First Component", round(weighted.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(weighted.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
-plot(information.pcoa$vectors[,1],information.pcoa$vectors[,2], col=groups,main="Information UniFrac\nprincipal coordinates analysis",xlab=paste("First Component", round(information.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(information.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
-plot(ratio_no_log.pcoa$vectors[,1],ratio_no_log.pcoa$vectors[,2], col=groups,main="Ratio UniFrac\nprincipal coordinates analysis",xlab=paste("First Component", round(ratio_no_log.varEx[1],digits=3),"variance explained"),ylab=paste("Second Component", round(ratio_no_log.varEx[2],digits=3),"variance explained"),pch=19,cex.lab=1.4,cex.main=2)
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, groups, "principal coordinate analysis", c("purple","blue","red"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$TPAmm2, "TPA mm2", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$Age, "Age", c("blue","red","purple"))
+
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$Sex, "Sex", c("blue","red","purple"))
+
+plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$smoker, "Smoking", c("blue","purple","red"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$PackYears, "Pack Years", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPSys, "Systolic Blood Pressure", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPDias, "Diastolic Blood Pressure", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$chol, "Cholesterol", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$trig, "Triglycerides", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$hdl, "HDL", c("blue","red","purple"))
+
+plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$ldl, "LDL", c("blue","red","purple"))
 
 dev.off()
