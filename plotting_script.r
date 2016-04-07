@@ -138,31 +138,29 @@ dev.off()
 
 # generate the distance matrix
 d.dist <- dist(d.clr, method="euclidian")
-d.filter.dist <- dist(d.filter.clr, method="euclidian")
-d.genus.dist <- dist(d.genus.clr, method="euclidian")
-otu.tab.genus.dist <- dist(otu.tab.genus.clr, method="euclidian")
+d.extreme.dist <- dist(d.extreme.clr, method="euclidian")
 
 # add condition onto labels of 16S hclust data
-otu.tab.conditions <- as.character(groups)
-otu.tab.conditions <- gsub(" ","_",otu.tab.conditions)
-attributes(otu.tab.genus.dist)$Labels <- paste(otu.tab.conditions, attributes(otu.tab.genus.dist)$Labels, sep="_")
+d.conditions <- as.character(groups)
+d.conditions <- gsub(" ","_",d.conditions)
+attributes(d.dist)$Labels <- paste(d.conditions, attributes(d.dist)$Labels, sep="_")
+
+# add condition onto labels of 16S hclust data
+d.extreme.conditions <- as.character(groups.extreme)
+d.extreme.conditions <- gsub(" ","_",d.extreme.conditions)
+attributes(d.extreme.dist)$Labels <- paste(d.extreme.conditions, attributes(d.extreme.dist)$Labels, sep="_")
+
 
 # cluster the data
 d.hc <- hclust(d.dist, method="ward.D2")
-d.filter.hc <- hclust(d.filter.dist, method="ward.D2")
-d.genus.hc <- hclust(d.genus.dist, method="ward.D2")
-otu.tab.genus.hc <- hclust(otu.tab.genus.dist, method="ward.D2")
+d.extreme.hc <- hclust(d.extreme.dist, method="ward.D2")
 
 # now re-order the data to plot the barplot in the same order
 d.order <- d.adj.zero[,d.hc$order]
-d.filter.order <- d.filter[,d.filter.hc$order]
-d.genus.order <- d.genus.adj.zero[,d.genus.hc$order]
-otu.tab.genus.order <- otu.tab.genus.adj.zero[,otu.tab.genus.hc$order]
+d.extreme.order <- d.extreme[,d.extreme.hc$order]
 
 d.acomp <- acomp(t(d.order))
-d.filter.acomp <- acomp(t(d.filter.order))
-d.genus.acomp <- acomp(t(d.genus.order))
-otu.tab.genus.acomp <- acomp(t(otu.tab.genus.order))
+d.extreme.acomp <- acomp(t(d.extreme.order))
 
 pdf("dendogram_barplot.pdf")
 
@@ -177,35 +175,15 @@ par(mar=c(0,1,1,1)+0.1)
 plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
 legend(x="center", legend=d.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
 
-layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(6,4), height=c(4,4))
+layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(8,10), height=c(4,4))
 # plot the dendrogram
-plot(d.filter.hc, cex=0.6)
+plot(d.extreme.hc, cex=0.6)
 # plot the barplot below
-barplot(d.filter.acomp, legend.text=F, col=as.character(taxa.filter.col[,2]), axisnames=F, border=NA, xpd=T)
+barplot(d.extreme.acomp, legend.text=F, col=as.character(taxa.col[,2]), axisnames=F, border=NA, xpd=T)
 par(mar=c(0,1,1,1)+0.1)
 # and the legend
 plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-legend(x="center", legend=d.filter.names, col=as.character(taxa.filter.col[,2]), lwd=5, cex=.5, border=NULL)
-
-layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(8,6), height=c(4,4))
-# plot the dendrogram
-plot(d.genus.hc, cex=0.6)
-# plot the barplot below
-barplot(d.genus.acomp, legend.text=F, col=as.character(taxa.d.genus.col[,2]), axisnames=F, border=NA, xpd=T)
-par(mar=c(0,1,1,1)+0.1)
-# and the legend
-plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-legend(x="center", legend=d.genus.names, col=as.character(taxa.d.genus.col[,2]), lwd=5, cex=.5, border=NULL,ncol=2)
-
-layout(matrix(c(1,3,2,3),2,2, byrow=T), widths=c(10,6), height=c(4,4))
-# plot the dendrogram
-plot(otu.tab.genus.hc, cex=0.4, hang=-1)
-# plot the barplot below
-barplot(otu.tab.genus.acomp, legend.text=F, col=as.character(taxa.otu.tab.genus.col[,2]), axisnames=F, border=NA, xpd=T)
-par(mar=c(0,1,1,1)+0.1)
-# and the legend
-plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-legend(x="center", legend=otu.tab.genus.names, col=as.character(taxa.otu.tab.genus.col[,2]), lwd=5, cex=.5, border=NULL,ncol=2)
+legend(x="center", legend=d.extreme.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
 
 dev.off()
 
