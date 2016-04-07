@@ -169,7 +169,7 @@ plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pc
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPSys, "Systolic Blood Pressure", c("blue","red","purple"))
 
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$BPDias, "Diastolic Blood Pressure", c("blue","red","purple"))
-
+0
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$chol, "Cholesterol", c("blue","red","purple"))
 
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$trig, "Triglycerides", c("blue","red","purple"))
