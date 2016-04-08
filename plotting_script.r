@@ -159,22 +159,38 @@ plot.dendogram.barplot(d.extreme.clr,taxa.col,d.extreme.names,groups.extreme)
 
 dev.off()
 
+plot.aldex.volcano <- function(d.aldex,d.conds) {
+  x <- aldex.clr(d.aldex, mc.samples=128, verbose=FALSE)
+  ## [1] "operating in serial mode"
+  # calculate p values for each replicate and report the mean
+  x.t <- aldex.ttest(x, d.conds)
+  # calculate mean effect sizes
+  x.e <- aldex.effect(x, d.conds, verbose=FALSE)
+  ## [1] "operating in serial mode"
+  # save it all in a data frame
+  x.all <- data.frame(x.e,x.t)
+  
+  layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
+  par(mar=c(5,4,4,1)+0.1)
+  aldex.plot(x.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
+  plot(x.all$effect, x.all$wi.eBH, log="y", pch=19, main="Effect",
+  cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
+  abline(h=0.05, lty=2)
+  plot(x.all$diff.btw, x.all$wi.eBH, log="y", pch=19, main="Volcano",
+  cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
+  abline(h=0.05, lty=2)
+}
+
+
+
+
+
 # generate the dataset by making a data frame of
 ep.h <- colnames(d)[which(groups == "Explained")] # Before samples
 ep.n <- colnames(d)[which(groups == "Protected")] # After samples
 ep.aldex <- data.frame(d[,ep.h], d[,ep.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
 ep.conds.aldex <- c(rep("Explained", length(ep.h)), rep("Protected", length(ep.n)))
-# generate 128 Dirichlet Monte-Carlo replicates
-x.e.p <- aldex.clr(ep.aldex, mc.samples=128, verbose=FALSE)
-## [1] "operating in serial mode"
-# calculate p values for each replicate and report the mean
-x.e.p.t <- aldex.ttest(x.e.p, ep.conds.aldex)
-# calculate mean effect sizes
-x.e.p.e <- aldex.effect(x.e.p, ep.conds.aldex, verbose=FALSE)
-## [1] "operating in serial mode"
-# save it all in a data frame
-x.e.p.all <- data.frame(x.e.p.e,x.e.p.t)
 
 # generate the dataset by making a data frame of
 eu.h <- colnames(d)[which(groups == "Explained")] # Before samples
@@ -182,16 +198,6 @@ eu.n <- colnames(d)[which(groups == "Unexplained")] # After samples
 eu.aldex <- data.frame(d[,eu.h], d[,eu.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
 eu.conds.aldex <- c(rep("Explained", length(eu.h)), rep("Unexplained", length(eu.n)))
-# generate 128 Dirichlet Monte-Carlo replicates
-x.e.u <- aldex.clr(eu.aldex, mc.samples=128, verbose=FALSE)
-## [1] "operating in serial mode"
-# calculate p values for each replicate and report the mean
-x.e.u.t <- aldex.ttest(x.e.u, eu.conds.aldex)
-# calculate mean effect sizes
-x.e.u.e <- aldex.effect(x.e.u, eu.conds.aldex, verbose=FALSE)
-## [1] "operating in serial mode"
-# save it all in a data frame
-x.e.u.all <- data.frame(x.e.u.e,x.e.u.t)
 
 # generate the dataset by making a data frame of
 up.h <- colnames(d)[which(groups == "Unexplained")] # Before samples
@@ -199,77 +205,20 @@ up.n <- colnames(d)[which(groups == "Protected")] # After samples
 up.aldex <- data.frame(d[,up.h], d[,up.n],check.names=FALSE) # make a data frame
 # make the vector of set membership in the same order as
 up.conds.aldex <- c(rep("Unexplained", length(up.h)), rep("Protected", length(up.n)))
-# generate 128 Dirichlet Monte-Carlo replicates
-x.u.p <- aldex.clr(up.aldex, mc.samples=128, verbose=FALSE)
-## [1] "operating in serial mode"
-# calculate p values for each replicate and report the mean
-x.u.p.t <- aldex.ttest(x.u.p, up.conds.aldex)
-# calculate mean effect sizes
-x.u.p.e <- aldex.effect(x.u.p, up.conds.aldex, verbose=FALSE)
-## [1] "operating in serial mode"
-# save it all in a data frame
-x.u.p.all <- data.frame(x.u.p.e,x.u.p.t)
-
 
 # generate the dataset by making a data frame of
 d.extreme.aldex <- data.frame(d.extreme) # make a data frame
 # make the vector of set membership in the same order as
 extreme.conds.aldex <- as.character(groups.extreme)
-# generate 128 Dirichlet Monte-Carlo replicates
-x.extreme <- aldex.clr(d.extreme.aldex, mc.samples=128, verbose=FALSE)
-## [1] "operating in serial mode"
-# calculate p values for each replicate and report the mean
-x.extreme.t <- aldex.ttest(x.extreme, extreme.conds.aldex)
-# calculate mean effect sizes
-x.extreme.e <- aldex.effect(x.extreme, extreme.conds.aldex, verbose=FALSE)
-## [1] "operating in serial mode"
-# save it all in a data frame
-x.extreme.all <- data.frame(x.extreme.e,x.extreme.t)
 
 pdf("aldex_plots.pdf")
 
-layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
-par(mar=c(5,4,4,1)+0.1)
-aldex.plot(x.e.p.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.e.p.all$effect, x.e.p.all$wi.eBH, log="y", pch=19, main="Effect",
-cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-plot(x.e.p.all$diff.btw, x.e.p.all$wi.eBH, log="y", pch=19, main="Volcano",
-cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-
-layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
-par(mar=c(5,4,4,1)+0.1)
-aldex.plot(x.e.u.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.e.u.all$effect, x.e.u.all$wi.eBH, log="y", pch=19, main="Effect",
-cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-plot(x.e.u.all$diff.btw, x.e.u.all$wi.eBH, log="y", pch=19, main="Volcano",
-cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-
-layout(matrix(c(1,2,3,1,2,3),2,3, byrow=T), widths=c(5,2,2), height=c(4,4))
-par(mar=c(5,4,4,1)+0.1)
-aldex.plot(x.u.p.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.u.p.all$effect, x.u.p.all$wi.eBH, log="y", pch=19, main="Effect",
-cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-plot(x.u.p.all$diff.btw, x.u.p.all$wi.eBH, log="y", pch=19, main="Volcano",
-cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-
-aldex.plot(x.extreme.all, test="wilcox", cutoff=0.05, all.cex=0.8, called.cex=1)
-plot(x.extreme.all$effect, x.extreme.all$wi.eBH, log="y", pch=19, main="Effect",
-cex=0.5, xlab="Effect size", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
-plot(x.extreme.all$diff.btw, x.extreme.all$wi.eBH, log="y", pch=19, main="Volcano",
-cex=0.5, xlab="Difference", ylab="Expected Benjamini-Hochberg P")
-abline(h=0.05, lty=2)
+plot.aldex.volcano(ep.aldex,ep.conds.aldex)
+plot.aldex.volcano(eu.aldex,eu.conds.aldex)
+plot.aldex.volcano(up.aldex,up.conds.aldex)
+plot.aldex.volcano(d.extreme.aldex,extreme.conds.aldex)
 
 dev.off()
-
-# COMPARE EFFECT SIZE WITH 16S
-
 
 ## sanity check to make sure all your counts have metadata
 # which(!(colnames(otu.tab) %in% rownames(metadata)))
