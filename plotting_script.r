@@ -181,10 +181,6 @@ plot.aldex.volcano <- function(d.aldex,d.conds) {
   abline(h=0.05, lty=2)
 }
 
-
-
-
-
 # generate the dataset by making a data frame of
 ep.h <- colnames(d)[which(groups == "Explained")] # Before samples
 ep.n <- colnames(d)[which(groups == "Protected")] # After samples
@@ -237,12 +233,13 @@ mycolor <- rgb(red/255, green/255, blue/255, 0.3)
 pdf("16S_effect_sizes.pdf")
 plot(h.ep.aldex$effect, h.up.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Explained vs. Protected\nand Unexplained vs. Protected",xlab="Explained vs. Protected",ylab="Unexplained vs. Protected")
 cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-
+# [1] -0.385572
 plot(h.eu.aldex$effect, h.up.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Explained vs. Unexplained\nand Unexplained vs. Protected",xlab="Explained vs. Unexplained",ylab="Unexplained vs. Protected")
 cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-
+# [1] 0.6208453
 plot(h.up.aldex$effect, h.extreme.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Unexplained vs. Protected\nand Top decile vs. Bottom decile subset",xlab="Unexplained vs. Protected",ylab="Top decile vs. Bottom decile subset")
 cor(h.up.aldex$effect, y = h.extreme.aldex$effect, use = "everything", method = "spearman")
+# [1] 0.5096007
 dev.off()
 
 h.ep.aldex <- h.ep.aldex[order(abs(h.ep.aldex$effect),decreasing=TRUE),]
@@ -282,11 +279,9 @@ head(taxonomy[as.numeric(rownames(h.extreme.aldex))])
 write.table(h.ep.aldex,file="explained_vs_protected_aldex_output.txt",sep="\t",quote=FALSE)
 write.table(h.eu.aldex,file="explained_vs_unexplained_aldex_output.txt",sep="\t",quote=FALSE)
 write.table(h.up.aldex,file="unexplained_vs_protected_aldex_output.txt",sep="\t",quote=FALSE)
-write.table(h.extreme.aldex,file="top_decile_vs_bottoim_decile_aldex_output.txt",sep="\t",quote=FALSE)
+write.table(h.extreme.aldex,file="top_decile_vs_bottom_decile_aldex_output.txt",sep="\t",quote=FALSE)
 
-# TODO: fix below
-
-# make plots with top and bottom decile effect sizes from metnash comparison colored
+# make plots with top and bottom decile effect sizes from extreme comparison colored
 firebrick <- c(col2rgb("firebrick"))
 red <- firebrick[1]
 green <- firebrick[2]
@@ -313,15 +308,20 @@ mygray <- rgb(red/255, green/255, blue/255, 0.3)
 
 palette(c(violet,myblue,mygray,firebrick))
 
-otu.tab.common.effect <- h.metnash.aldex$effect[match(common.genus,rownames(h.metnash.aldex))]
-d.common.effect <- h.metnash.d.aldex$effect[match(common.genus,rownames(h.metnash.d.aldex))]
-plot(otu.tab.common.effect, d.common.effect, pch=19,col=genus.groups, main="Effect sizes of healthy vs extreme NASH\nfor MetaPhlAn results vs. 16S sequencing",xlab="16S rRNA gene tag sequencing",ylab="MetaPhlAn results from metagenomic sequencing")
-cor(otu.tab.common.effect, y = d.common.effect, use = "everything", method = "spearman")
-# [1] 0.2021001
+h.ep.aldex <- h.ep.aldex[match(rownames(h.extreme.aldex), rownames(h.ep.aldex)),]
+h.eu.aldex <- h.eu.aldex[match(rownames(h.extreme.aldex), rownames(h.eu.aldex)),]
+h.up.aldex <- h.up.aldex[match(rownames(h.extreme.aldex), rownames(h.up.aldex)),]
 
-common.genus <- rownames(h.metnash.d.select.aldex)[which(rownames(h.metnash.d.select.aldex) %in% rownames(h.metnash.aldex))]
-otu.tab.common.effect <- h.metnash.aldex$effect[match(common.genus,rownames(h.metnash.aldex))]
-d.select.common.effect <- h.metnash.d.select.aldex$effect[match(common.genus,rownames(h.metnash.d.select.aldex))]
-plot(otu.tab.common.effect, d.select.common.effect, pch=19,col=genus.groups, main="Effect sizes of healthy vs extreme NASH\nfor MetaPhlAn results vs. 16S sequencing",xlab="16S rRNA gene tag sequencing",ylab="MetaPhlAn results from metagenomic sequencing")
-cor(otu.tab.common.effect, y = d.select.common.effect, use = "everything", method = "spearman")
-# [1] 0.235092
+effect.groups <- rep("NA",nrow(h.extreme.aldex))
+effect.groups[c(1:decile)] <- "Top decile"
+effect.groups[c((decile+1):(length(effect.groups)-decile))] <- "Middle half"
+effect.groups[c((length(effect.groups)-decile+1):length(effect.groups))] <- "Bottom decile"
+effect.groups <- as.factor(effect.groups)
+
+plot(h.ep.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs protected\nand unexplained vs protected",xlab="explained vs protected",ylab="unexplained vs protected")
+cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
+# [1] -0.385572
+
+plot(h.eu.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs unexplained\nand unexplained vs protected",xlab="explained vs unexplained",ylab="unexplained vs protected")
+cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
+# [1] 0.6208453
