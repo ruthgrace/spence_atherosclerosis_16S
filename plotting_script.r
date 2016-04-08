@@ -307,7 +307,7 @@ blue <- mygray[3]
 mygray <- rgb(red/255, green/255, blue/255, 0.3)
 
 palette(c(violet,myblue,mygray,firebrick))
-
+h.extreme.aldex <- h.extreme.aldex[order(h.extreme.aldex$effect,decreasing=TRUE),]
 h.ep.aldex <- h.ep.aldex[match(rownames(h.extreme.aldex), rownames(h.ep.aldex)),]
 h.eu.aldex <- h.eu.aldex[match(rownames(h.extreme.aldex), rownames(h.eu.aldex)),]
 h.up.aldex <- h.up.aldex[match(rownames(h.extreme.aldex), rownames(h.up.aldex)),]
@@ -325,3 +325,7 @@ cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spea
 plot(h.eu.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs unexplained\nand unexplained vs protected",xlab="explained vs unexplained",ylab="unexplained vs protected")
 cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
 # [1] 0.6208453
+
+plot(h.up.aldex$effect, h.extreme.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of unexplained vs protected\nand extreme deciles",xlab="unexplained vs protected",ylab="extreme deciles")
+cor(h.up.aldex$effect, y = h.extreme.aldex$effect, use = "everything", method = "spearman")
+# [1] 0.5096007
