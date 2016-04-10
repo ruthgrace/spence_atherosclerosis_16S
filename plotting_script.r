@@ -169,7 +169,7 @@ d.intermediate.f.clr <- plot.biplot(d.intermediate.f.adj.zero,col.intermediate.f
 
 dev.off()
 
-plot.dendogram.barplot <- function(d.clr, taxa.col, d.names, groups) {
+plot.dendogram.barplot <- function(d.clr, d.adj.zero, taxa.col, d.names, groups) {
   d.dist <- dist(d.clr, method="euclidian")
   d.conditions <- as.character(groups)
   d.conditions <- gsub(" ","_",d.conditions)
@@ -183,14 +183,25 @@ plot.dendogram.barplot <- function(d.clr, taxa.col, d.names, groups) {
   # plot the dendrogram
   plot(d.hc, cex=0.6)
   # plot the barplot below
-  barplot(d.acomp, legend.text=F, col=as.character(taxa.col[,2]), axisnames=F, border=NA, xpd=T)
+  barplot(d.acomp, legend.text=F, col=as.character(taxa.col[match(colnames(d.acomp),rownames(taxa.col)),2]), axisnames=F, border=NA, xpd=T)
   par(mar=c(0,1,1,1)+0.1)
   # and the legend
   plot(1,2, pch = 1, lty = 1, ylim=c(-20,20), type = "n", axes = FALSE, ann = FALSE)
-  legend(x="center", legend=d.names, col=as.character(taxa.col[,2]), lwd=5, cex=.3, border=NULL,ncol=3)
+  legend(x="center", legend=taxa.col[match(d.names,rownames(taxa.col)),1], col=as.character(taxa.col[match(d.names,rownames(taxa.col)),2]), lwd=5, cex=.3, border=NULL,ncol=3)
 }
 
 pdf("dendogram_barplot.pdf")
+
+plot.dendogram.barplot(d.extreme.m.clr, d.extreme.m.adj.zero, taxa.col,d.extreme.m.names,groups.extreme.m)
+plot.dendogram.barplot(d.extreme.f.clr, d.extreme.f.adj.zero, taxa.col,d.extreme.f.names,groups.extreme.f)
+plot.dendogram.barplot(d.intermediate.m.clr, d.intermediate.m.adj.zero, taxa.col,d.intermediate.m.names,groups.intermediate.m)
+plot.dendogram.barplot(d.intermediate.f.clr, d.intermediate.f.adj.zero, taxa.col,d.intermediate.f.names,groups.intermediate.f)
+
+d.clr <- d.extreme.f.clr
+d.names <- d.extreme.f.names
+groups <- groups.extreme.f
+d.adj.zero <- d.extreme.f.adj.zero
+
 
 plot.dendogram.barplot(d.clr,taxa.col,d.names,groups)
 
