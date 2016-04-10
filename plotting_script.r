@@ -56,52 +56,90 @@ otu.sp <- c(as.character(taxonomy))
 for (i in c(1:length(taxonomy))) {
   otu.sp[i] <- paste(strsplit(otu.sp[i],c(";"))[[1]][c(6,7)],collapse="")
 }
+names(otu.sp) <- colnames(otu.tab)
 
-residual.order <- order(metadata$Standardized.Residual,decreasing=TRUE)
-decile <- round(nrow(metadata)/10)
-top.decile <- residual.order[c(1:decile)]
-bottom.decile <- residual.order[c(nrow(metadata)-decile+1):nrow(metadata)]
-otu.tab.extreme <- otu.tab[c(top.decile,bottom.decile),]
+# get all samples with residual scores > 2 and < -2 (2 stdev away from median)
+extreme <- otu.tab[which(metadata$Standardized.Residual >= 2 | metadata$Standardized.Residual <= -2),]
+# get all samples with residual scores between 1 and 2 and -1 and -2
+intermediate.top <- otu.tab[which(metadata$Standardized.Residual >= 1 & metadata$Standardized.Residual <2),]
+intermediate.bottom <- otu.tab[which(metadata$Standardized.Residual <= -1 & metadata$Standardized.Residual > -2),]
+intermediate <- intermediate <- t(data.frame(t(intermediate.top), t(intermediate.bottom), check.names=FALSE))
+#separate by sex
+extreme.m <- extreme[which(metadata[match(rownames(extreme),rownames(metadata)),"Sex"] == "M"),]
+extreme.f <- extreme[which(metadata[match(rownames(extreme),rownames(metadata)),"Sex"] == "F"),]
+intermediate.m <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "M"),]
+intermediate.f <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "F"),]
 
-# conditions: Originally 0 meant steatohepatosis, and 1 meant NASH
-residuals <- metadata$Standardized.Residual
-groups <- rep("NA",length(residuals))
-groups[which(residuals < -1)] <- "Protected"
-groups[which(residuals >= -1 & residuals < 1)] <- "Explained"
-groups[which(residuals >= 1)] <- "Unexplained"
-groups <- as.factor(groups)
+make.groups <- function(mytable,metadata) {
+  mygroups <- rep("NA",nrow(mytable))
+  residuals <- metadata[match(rownames(mytable),rownames(metadata)),"Standardized.Residual"]
+  mygroups[which(residuals <= -1)] <- "Protected"
+  mygroups[which(residuals >= 1)] <- "Unexplained"
+  mygroups[which(residuals < 1 & residuals > -1)] <- "Explained"
+  return(as.factor(mygroups))
+}
 
-groups.extreme <- c(rep("Top decile",decile),rep("Bottom decile",decile))
-groups.extreme <- as.factor(groups.extreme)
+groups.extreme.m <- make.groups(extreme.m,metadata)
+groups.extreme.f <- make.groups(extreme.f,metadata)
+groups.intermediate.m <- make.groups(intermediate.m,metadata)
+groups.intermediate.f <- make.groups(intermediate.f,metadata)
 
-d <- t(otu.tab)
-d.extreme <- t(otu.tab.extreme)
-rownames(d) <- otu.sp
-rownames(d.extreme) <- otu.sp
-# it just happens that there are no zero count features in d.extreme, so it's not necessary to filter
+d.extreme.m <- t(extreme.m)
+d.extreme.f <- t(extreme.f)
+d.intermediate.m <- t(intermediate.m)
+d.intermediate.f <- t(intermediate.f)
+
+remove.zero.features <- function(mytable) {
+  feature.sum <- apply(mytable,1,sum)
+  mytable <- mytable[which(feature.sum > 0),]
+  return(mytable)
+}
+
+d.extreme.m <- remove.zero.features(d.extreme.m)
+d.extreme.f <- remove.zero.features(d.extreme.f)
+d.intermediate.m <- remove.zero.features(d.intermediate.m)
+d.intermediate.f <- remove.zero.features(d.intermediate.f)
 
 # adjust zeros
-d.adj.zero <- t(cmultRepl(t(d),method="CZM"))
-d.extreme.adj.zero <- t(cmultRepl(t(d.extreme),method="CZM"))
+d.extreme.m.adj.zero <- t(cmultRepl(t(d.extreme.m),method="CZM"))
+d.extreme.f.adj.zero <- t(cmultRepl(t(d.extreme.f),method="CZM"))
+d.intermediate.m.adj.zero <- t(cmultRepl(t(d.intermediate.m),method="CZM"))
+d.intermediate.f.adj.zero <- t(cmultRepl(t(d.intermediate.f),method="CZM"))
 
-d.names <- rownames(d.adj.zero)
-d.extreme.names <- rownames(d.extreme.adj.zero)
+d.extreme.m.names <- rownames(d.extreme.m.adj.zero)
+d.extreme.f.names <- rownames(d.extreme.f.adj.zero)
+d.intermediate.m.names <- rownames(d.intermediate.m.adj.zero)
+d.intermediate.f.names <- rownames(d.intermediate.f.adj.zero)
 
-taxa.col <- data.frame(as.character(rownames(d)),rownames(d))
+taxa.col <- data.frame(otu.sp,otu.sp)
 colnames(taxa.col) <- c("taxon","color")
 taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
 
-conds <- data.frame(as.character(groups))
-colnames(conds) <- "cond"
+get.conds.df <- function(mygroups) {
+  conds <- data.frame(as.character(mygroups))
+  colnames(conds) <- "cond"
+  return(conds)
+}
+
+conds.extreme.m <- get.conds.df(groups.extreme.m)
+conds.extreme.f <- get.conds.df(groups.extreme.f)
+conds.intermediate.m <- get.conds.df(groups.intermediate.m)
+conds.intermediate.f <- get.conds.df(groups.intermediate.f)
 
 palette=palette(c(rgb(1,0,0,0.6), "green","black", rgb(0,1,1,0.6)))
 
-my.col <- rep("NA",length(groups))
-my.col[which(groups == "Explained")] <- "purple"
-my.col[which(groups == "Protected")] <- "blue"
-my.col[which(groups == "Unexplained")] <- "red"
+get.colors <- function(mygroups,dark="") {
+  my.col <- rep("NA",length(mygroups))
+  my.col[which(mygroups == "Explained")] <- paste(dark,"purple",sep="")
+  my.col[which(mygroups == "Protected")] <- paste(dark,"blue",sep="")
+  my.col[which(mygroups == "Unexplained")] <- paste(dark,"red",sep="")
+  return(my.col)
+}
 
-my.extreme.col <- c(rep("red",20),rep("blue",20))
+col.extreme.m <- get.colors(groups.extreme.m,dark="dark")
+col.extreme.f <- get.colors(groups.extreme.f,dark="dark")
+col.intermediate.m <- get.colors(groups.intermediate.m)
+col.intermediate.f <- get.colors(groups.intermediate.f)
 
 plot.biplot <- function(d.adj.zero,my.col,groups,legend.col) {
   d.prop <- apply(d.adj.zero,2,function(x){x/sum(x)})
@@ -124,9 +162,10 @@ plot.biplot <- function(d.adj.zero,my.col,groups,legend.col) {
 
 pdf("biplots.pdf")
 
-d.clr <- plot.biplot(d.adj.zero,my.col,groups,c("purple","blue","red"))
-
-d.extreme.clr <- plot.biplot(d.extreme.adj.zero,my.extreme.col,groups.extreme,c("blue","red"))
+d.extreme.m.clr <- plot.biplot(d.extreme.m.adj.zero,col.extreme.m,groups.extreme.m,c("darkblue","darkred"))
+d.extreme.f.clr <- plot.biplot(d.extreme.f.adj.zero,col.extreme.f,groups.extreme.f,c("darkblue","darkred"))
+d.intermediate.m.clr <- plot.biplot(d.intermediate.m.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
+d.intermediate.f.clr <- plot.biplot(d.intermediate.f.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
 
 dev.off()
 
