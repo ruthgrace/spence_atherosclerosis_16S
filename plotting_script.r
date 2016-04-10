@@ -197,16 +197,6 @@ plot.dendogram.barplot(d.extreme.f.clr, d.extreme.f.adj.zero, taxa.col,d.extreme
 plot.dendogram.barplot(d.intermediate.m.clr, d.intermediate.m.adj.zero, taxa.col,d.intermediate.m.names,groups.intermediate.m)
 plot.dendogram.barplot(d.intermediate.f.clr, d.intermediate.f.adj.zero, taxa.col,d.intermediate.f.names,groups.intermediate.f)
 
-d.clr <- d.extreme.f.clr
-d.names <- d.extreme.f.names
-groups <- groups.extreme.f
-d.adj.zero <- d.extreme.f.adj.zero
-
-
-plot.dendogram.barplot(d.clr,taxa.col,d.names,groups)
-
-plot.dendogram.barplot(d.extreme.clr,taxa.col,d.extreme.names,groups.extreme)
-
 dev.off()
 
 plot.aldex.volcano <- function(d.aldex,d.conds) {
@@ -231,33 +221,16 @@ plot.aldex.volcano <- function(d.aldex,d.conds) {
   abline(h=0.05, lty=2)
 }
 
-# generate the dataset by making a data frame of
-ep.h <- colnames(d)[which(groups == "Explained")] # Before samples
-ep.n <- colnames(d)[which(groups == "Protected")] # After samples
-ep.aldex <- data.frame(d[,ep.h], d[,ep.n],check.names=FALSE) # make a data frame
-# make the vector of set membership in the same order as
-ep.conds.aldex <- c(rep("Explained", length(ep.h)), rep("Protected", length(ep.n)))
-
-# generate the dataset by making a data frame of
-eu.h <- colnames(d)[which(groups == "Explained")] # Before samples
-eu.n <- colnames(d)[which(groups == "Unexplained")] # After samples
-eu.aldex <- data.frame(d[,eu.h], d[,eu.n],check.names=FALSE) # make a data frame
-# make the vector of set membership in the same order as
-eu.conds.aldex <- c(rep("Explained", length(eu.h)), rep("Unexplained", length(eu.n)))
-
-# generate the dataset by making a data frame of
-up.h <- colnames(d)[which(groups == "Unexplained")] # Before samples
-up.n <- colnames(d)[which(groups == "Protected")] # After samples
-up.aldex <- data.frame(d[,up.h], d[,up.n],check.names=FALSE) # make a data frame
-# make the vector of set membership in the same order as
-up.conds.aldex <- c(rep("Unexplained", length(up.h)), rep("Protected", length(up.n)))
-
-# generate the dataset by making a data frame of
-d.extreme.aldex <- data.frame(d.extreme) # make a data frame
-# make the vector of set membership in the same order as
-extreme.conds.aldex <- as.character(groups.extreme)
-
 pdf("aldex_plots.pdf")
+
+plot.aldex.volcano(data.frame(d.extreme.m),as.character(groups.extreme.m))
+plot.aldex.volcano(data.frame(d.extreme.f),as.character(groups.extreme.f))
+plot.aldex.volcano(data.frame(d.intermediate.m),as.character(groups.intermediate.m))
+plot.aldex.volcano(data.frame(d.intermediate.f),as.character(groups.intermediate.f))
+
+
+
+
 
 plot.aldex.volcano(ep.aldex,ep.conds.aldex)
 plot.aldex.volcano(eu.aldex,eu.conds.aldex)
