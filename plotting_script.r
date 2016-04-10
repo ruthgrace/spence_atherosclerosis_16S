@@ -228,24 +228,12 @@ plot.aldex.volcano(data.frame(d.extreme.f),as.character(groups.extreme.f))
 plot.aldex.volcano(data.frame(d.intermediate.m),as.character(groups.intermediate.m))
 plot.aldex.volcano(data.frame(d.intermediate.f),as.character(groups.intermediate.f))
 
-
-
-
-
-plot.aldex.volcano(ep.aldex,ep.conds.aldex)
-plot.aldex.volcano(eu.aldex,eu.conds.aldex)
-plot.aldex.volcano(up.aldex,up.conds.aldex)
-plot.aldex.volcano(d.extreme.aldex,extreme.conds.aldex)
-
 dev.off()
 
-## sanity check to make sure all your counts have metadata
-# which(!(colnames(otu.tab) %in% rownames(metadata)))
-
-h.ep.aldex <- aldex(data.frame(ep.aldex),as.character(ep.conds.aldex))
-h.eu.aldex <- aldex(data.frame(eu.aldex),as.character(eu.conds.aldex))
-h.up.aldex <- aldex(data.frame(up.aldex),as.character(up.conds.aldex))
-h.extreme.aldex <- aldex(data.frame(d.extreme.aldex),as.character(extreme.conds.aldex))
+extreme.m.aldex <- aldex(data.frame(d.extreme.m),as.character(groups.extreme.m))
+extreme.f.aldex <- aldex(data.frame(d.extreme.f),as.character(groups.extreme.f))
+intermediate.m.aldex <- aldex(data.frame(d.intermediate.m),as.character(groups.intermediate.m))
+intermediate.f.aldex <- aldex(data.frame(d.intermediate.f),as.character(groups.intermediate.f))
 
 mycolor <- c(col2rgb("turquoise4"))
 red <- mycolor[1]
@@ -254,16 +242,24 @@ blue <- mycolor[3]
 mycolor <- rgb(red/255, green/255, blue/255, 0.3)
 
 pdf("16S_effect_sizes.pdf")
-plot(h.ep.aldex$effect, h.up.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Explained vs. Protected\nand Unexplained vs. Protected",xlab="Explained vs. Protected",ylab="Unexplained vs. Protected")
-cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-# [1] -0.385572
-plot(h.eu.aldex$effect, h.up.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Explained vs. Unexplained\nand Unexplained vs. Protected",xlab="Explained vs. Unexplained",ylab="Unexplained vs. Protected")
-cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-# [1] 0.6208453
-plot(h.up.aldex$effect, h.extreme.aldex$effect, pch=19,col=mycolor, main="Effect sizes of Unexplained vs. Protected\nand Top decile vs. Bottom decile subset",xlab="Unexplained vs. Protected",ylab="Top decile vs. Bottom decile subset")
-cor(h.up.aldex$effect, y = h.extreme.aldex$effect, use = "everything", method = "spearman")
-# [1] 0.5096007
+common.features <- intersect(intersect(intersect(rownames(extreme.m.aldex),rownames(extreme.f.aldex)), rownames(intermediate.m.aldex)), rownames(intermediate.f.aldex))
+plot(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"], extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of OTUs between male\nand female extreme residual scorers",xlab="Male sex",ylab="Female sex")
+cor(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"], y = extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] -0.08417705
+plot(intermediate.m.aldex[match(common.features,rownames(intermediate.m.aldex)),"effect"], intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of OTUs between male\nand female intermediate residual scorers",xlab="Male sex",ylab="Female sex")
+cor(intermediate.m.aldex[match(common.features,rownames(intermediate.m.aldex)),"effect"], y = intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] 0.2434751
+plot(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"], intermediate.m.aldex[match(common.features,rownames(intermediate.m.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of OTUs between male\nextreme and intermediate residual scorers",xlab="Extreme residual scores",ylab="Intermediate residual scores")
+cor(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"], y = intermediate.m.aldex[match(common.features,rownames(intermediate.m.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] 0.008379229
+plot(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of OTUs between female\nextreme and intermediate residual scorers",xlab="Extreme residual scores",ylab="Intermediate residual scores")
+cor(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], y = intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] -0.05444832
 dev.off()
+
+# ALDEX FEMALE AND Male
+#EXPLORE PREVOTELLA
+
 
 h.ep.aldex <- h.ep.aldex[order(abs(h.ep.aldex$effect),decreasing=TRUE),]
 h.eu.aldex <- h.eu.aldex[order(abs(h.eu.aldex$effect),decreasing=TRUE),]
