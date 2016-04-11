@@ -257,9 +257,39 @@ cor(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], 
 # [1] -0.05444832
 dev.off()
 
+# MALE VS FEMALE ALDEX PLOTS
+
+d <- data.frame(matrix(nrow=nrow(taxa.col), ncol=(ncol(d.extreme.m) + ncol(d.extreme.f) + ncol(d.intermediate.m) + ncol(d.intermediate.f))))
+rownames(d) <- rownames(taxa.col)
+d[match(rownames(d.extreme.m),rownames(d)),c(1:ncol(d.extreme.m))] <- d.extreme.m
+colnames(d)[c(1:ncol(d.extreme.m))] <- colnames(d.extreme.m)
+index <- ncol(d.extreme.m) + 1
+d[match(rownames(d.extreme.f),rownames(d)),c(index:(index + ncol(d.extreme.f) - 1))] <- d.extreme.f
+colnames(d)[c(index:(index + ncol(d.extreme.f) - 1))] <- colnames(d.extreme.f)
+index <- index + ncol(d.extreme.f)
+d[match(rownames(d.intermediate.m),rownames(d)),c(index:(index + ncol(d.intermediate.m) - 1))] <- d.intermediate.m
+colnames(d)[c(index:(index + ncol(d.intermediate.m) - 1))] <- colnames(d.intermediate.m)
+index <- index + ncol(d.intermediate.m)
+d[match(rownames(d.intermediate.f),rownames(d)),c(index:(index + ncol(d.intermediate.f) - 1))] <- d.intermediate.f
+colnames(d)[c(index:(index + ncol(d.intermediate.f) - 1))] <- colnames(d.intermediate.f)
+
+d.conds <- c(rep("Male",ncol(d.extreme.m)),rep("Female",ncol(d.extreme.f)),rep("Male",ncol(d.intermediate.m)),rep("Female",ncol(d.intermediate.f)))
+
+d.aldex <- aldex(d,d.conds)
+
+pdf("aldex_male_vs_female.pdf")
+
+aldex.plot(d.aldex,type="MA")
+aldex.plot(d.aldex,type="MW")
+
+dev.off()
+
+d.aldex <- d.aldex[order(abs(d.aldex$effect),decreasing=TRUE),]
+write.table(d.aldex,file="ALDEx_male_vs_female_output.txt",sep="\t",quote=FALSE)
+
 # ALDEX FEMALE AND Male
 #EXPLORE PREVOTELLA
-
+# 16s of top extreme otus collored in effect size plots
 
 h.ep.aldex <- h.ep.aldex[order(abs(h.ep.aldex$effect),decreasing=TRUE),]
 h.eu.aldex <- h.eu.aldex[order(abs(h.eu.aldex$effect),decreasing=TRUE),]
@@ -337,6 +367,8 @@ effect.groups[c((decile+1):(length(effect.groups)-decile))] <- "Middle half"
 effect.groups[c((length(effect.groups)-decile+1):length(effect.groups))] <- "Bottom decile"
 effect.groups <- as.factor(effect.groups)
 
+pdf("16S_top_bottom_residuals_effect_sizes.pdf")
+
 plot(h.ep.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs protected\nand unexplained vs protected",xlab="explained vs protected",ylab="unexplained vs protected")
 cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
 # [1] -0.385572
@@ -348,3 +380,5 @@ cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spea
 plot(h.up.aldex$effect, h.extreme.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of unexplained vs protected\nand extreme deciles",xlab="unexplained vs protected",ylab="extreme deciles")
 cor(h.up.aldex$effect, y = h.extreme.aldex$effect, use = "everything", method = "spearman")
 # [1] 0.5096007
+
+dev.off()
