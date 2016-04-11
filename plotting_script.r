@@ -352,4 +352,13 @@ summary(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect
 # -0.81830 -0.23020  0.01923  0.03125  0.26710  1.02800 
 
 
-#EXPLORE PREVOTELLA
+# EXPLORE PREVOTELLA
+# One Prevotella is missing in extreme.f group. See what it's up to in the other groups.
+prevotella <- rownames(taxa.col)[which(!(rownames(taxa.col) %in% rownames(d.extreme.f)))]
+print(paste("Effect size of missing prevotella in Extreme M:",extreme.m.aldex$effect[which(rownames(extreme.m.aldex) ==  prevotella)]))
+# [1] "Effect size of missing prevotella in Extreme M: -0.112519887389879"
+print(paste("Effect size of missing prevotella in Intermediate M:",intermediate.m.aldex$effect[which(rownames(intermediate.m.aldex) ==  prevotella)]))
+# [1] "Effect size of missing prevotella in Intermediate M: -0.00244435674671425"
+print(paste("Effect size of missing prevotella in Intermediate F:",intermediate.f.aldex$effect[which(rownames(intermediate.f.aldex) ==  prevotella)]))
+# [1] "Effect size of missing prevotella in Intermediate F: -0.0249854285733147"
+
