@@ -330,6 +330,26 @@ print(paste(unique.taxa[match(rownames(intermediate.f.aldex)[which(intermediate.
 # 1 common element in "female, extreme" and "female, intermed":
 # 68:Incertae_Sedis|97
 
+# intermediate effects dont seem to tend to be higher than extreme effects
+summary(extreme.m.aldex$effect)
+#     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -0.98160 -0.19640 -0.01633 -0.02153  0.16320  0.76090 
+summary(extreme.f.aldex$effect)
+#     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -0.75440 -0.14740  0.02674  0.02125  0.18290  0.98720 
+summary(intermediate.m.aldex$effect)
+#     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -0.51140 -0.12150 -0.01007 -0.02019  0.09708  0.45800 
+summary(intermediate.f.aldex$effect)
+#      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+# -0.684500 -0.127700 -0.003546 -0.010050  0.110800  0.559700 
+
+summary(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"] - intermediate.m.aldex[match(common.features,rownames(intermediate.m.aldex)),"effect"])
+# Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+# -0.846600 -0.228200 -0.016500 -0.000976  0.205000  0.835600 
+summary(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"] - intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"])
+# Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -0.81830 -0.23020  0.01923  0.03125  0.26710  1.02800 
+
 
 #EXPLORE PREVOTELLA
-# check to see if effect sizes increase in extreme
