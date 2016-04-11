@@ -287,98 +287,49 @@ dev.off()
 d.aldex <- d.aldex[order(abs(d.aldex$effect),decreasing=TRUE),]
 write.table(d.aldex,file="ALDEx_male_vs_female_output.txt",sep="\t",quote=FALSE)
 
-# ALDEX FEMALE AND Male
+unique.taxa <- paste(rownames(taxa.col),taxa.col[,1],sep=":")
+# the cutoff of 0.4 is chosen so that there is at least one qualifying taxa in each group
+print("Unique taxa with effect size >= 0.4 in Extreme M condition:")
+print(paste(unique.taxa[match(rownames(extreme.m.aldex)[which(extreme.m.aldex$effect >= 0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size >= 0.4 in Extreme F condition:")
+print(paste(unique.taxa[match(rownames(extreme.f.aldex)[which(extreme.f.aldex$effect >= 0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size >= 0.4 in Intermediate M condition:")
+print(paste(unique.taxa[match(rownames(intermediate.m.aldex)[which(intermediate.m.aldex$effect >= 0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size >= 0.4 in Intermediate F condition:")
+print(paste(unique.taxa[match(rownames(intermediate.f.aldex)[which(intermediate.f.aldex$effect >= 0.4)],rownames(taxa.col))],collapse="\n"))
+
+# 4 common elements in "male, extreme" and "female, extreme":
+# 52:Adlercreutzia|100
+# 94:Coprococcus|100
+# 101:Eggerthella|100
+# 734:Incertae_Sedis|90
+
+print("Unique taxa with effect size <= -0.4 in Extreme M condition:")
+print(paste(unique.taxa[match(rownames(extreme.m.aldex)[which(extreme.m.aldex$effect <= -0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size <= -0.4 in Extreme F condition:")
+print(paste(unique.taxa[match(rownames(extreme.f.aldex)[which(extreme.f.aldex$effect <= -0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size <= -0.4 in Intermediate M condition:")
+print(paste(unique.taxa[match(rownames(intermediate.m.aldex)[which(intermediate.m.aldex$effect <= -0.4)],rownames(taxa.col))],collapse="\n"))
+print("Unique taxa with effect size <= -0.4 in Intermediate F condition:")
+print(paste(unique.taxa[match(rownames(intermediate.f.aldex)[which(intermediate.f.aldex$effect <= -0.4)],rownames(taxa.col))],collapse="\n"))
+
+# 2 common elements in "male, extreme" and "female, extreme":
+# 85:Incertae_Sedis|84
+# 1855:Incertae_Sedis|99
+
+# 4 common elements in "male, extreme" and "female, intermed":
+# 96:Faecalibacterium|100
+# 44:Roseburia|94
+# 1223:Incertae_Sedis|93
+# 783:Ruminococcus|100
+
+# 2 common elements in "male, extreme", "female, extreme" and "female, intermed":
+# 791:Faecalibacterium|100
+# 645:Incertae_Sedis|97
+
+# 1 common element in "female, extreme" and "female, intermed":
+# 68:Incertae_Sedis|97
+
+
 #EXPLORE PREVOTELLA
-# 16s of top extreme otus collored in effect size plots
-
-h.ep.aldex <- h.ep.aldex[order(abs(h.ep.aldex$effect),decreasing=TRUE),]
-h.eu.aldex <- h.eu.aldex[order(abs(h.eu.aldex$effect),decreasing=TRUE),]
-h.up.aldex <- h.up.aldex[order(abs(h.up.aldex$effect),decreasing=TRUE),]
-h.extreme.aldex <- h.extreme.aldex[order(abs(h.extreme.aldex$effect),decreasing=TRUE),]
-
-head(taxonomy[as.numeric(rownames(h.ep.aldex))])
-# [1] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes;|100"               
-# [2] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Coprococcus;|100"               
-# [3] "Bacteria;Actinobacteria;Coriobacteriia;Coriobacteriales;Coriobacteriaceae;Adlercreutzia;|100"
-# [4] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Incertae_Sedis;|97"             
-# [5] "Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Subdoligranulum;|100"           
-# [6] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Incertae_Sedis;|95"             
-head(taxonomy[as.numeric(rownames(h.eu.aldex))])
-# [1] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes;|100"                       
-# [2] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Rikenellaceae;Alistipes;|100"                       
-# [3] "Bacteria;Firmicutes;Clostridia;Clostridiales;unclassified;unclassified;|94"                          
-# [4] "Bacteria;Proteobacteria;Deltaproteobacteria;Desulfovibrionales;Desulfovibrionaceae;Bilophila;|100"   
-# [5] "Bacteria;Firmicutes;Erysipelotrichia;Erysipelotrichales;Erysipelotrichaceae;Catenibacterium;|100"    
-# [6] "Archaea;Euryarchaeota;Methanobacteria;Methanobacteriales;Methanobacteriaceae;Methanobrevibacter;|100"
-head(taxonomy[as.numeric(rownames(h.up.aldex))])
-# [1] "Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Faecalibacterium;|100"
-# [2] "Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Faecalibacterium;|100"
-# [3] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Incertae_Sedis;|97"   
-# [4] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Bacteroidaceae;Bacteroides;|100"  
-# [5] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Coprococcus;|100"     
-# [6] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Incertae_Sedis;|95"   
-head(taxonomy[as.numeric(rownames(h.extreme.aldex))])
-# [1] "Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Faecalibacterium;|100"        
-# [2] "Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Faecalibacterium;|100"        
-# [3] "Bacteria;Actinobacteria;Coriobacteriia;Coriobacteriales;Coriobacteriaceae;Collinsella;|100"
-# [4] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Bacteroidaceae;Bacteroides;|100"          
-# [5] "Bacteria;Bacteroidetes;Bacteroidia;Bacteroidales;Prevotellaceae;Prevotella;|100"           
-# [6] "Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Incertae_Sedis;|97" 
-
-write.table(h.ep.aldex,file="explained_vs_protected_aldex_output.txt",sep="\t",quote=FALSE)
-write.table(h.eu.aldex,file="explained_vs_unexplained_aldex_output.txt",sep="\t",quote=FALSE)
-write.table(h.up.aldex,file="unexplained_vs_protected_aldex_output.txt",sep="\t",quote=FALSE)
-write.table(h.extreme.aldex,file="top_decile_vs_bottom_decile_aldex_output.txt",sep="\t",quote=FALSE)
-
-# make plots with top and bottom decile effect sizes from extreme comparison colored
-firebrick <- c(col2rgb("firebrick"))
-red <- firebrick[1]
-green <- firebrick[2]
-blue <- firebrick[3]
-firebrick <- rgb(red/255, green/255, blue/255, 0.3)
-
-violet <- c(col2rgb("darkviolet"))
-red <- violet[1]
-green <- violet[2]
-blue <- violet[3]
-violet <- rgb(red/255, green/255, blue/255, 0.3)
-
-myblue <- c(col2rgb("deepskyblue3"))
-red <- myblue[1]
-green <- myblue[2]
-blue <- myblue[3]
-myblue <- rgb(red/255, green/255, blue/255, 0.3)
-
-mygray <- c(col2rgb("gray18"))
-red <- mygray[1]
-green <- mygray[2]
-blue <- mygray[3]
-mygray <- rgb(red/255, green/255, blue/255, 0.3)
-
-palette(c(violet,myblue,mygray,firebrick))
-h.extreme.aldex <- h.extreme.aldex[order(h.extreme.aldex$effect,decreasing=TRUE),]
-h.ep.aldex <- h.ep.aldex[match(rownames(h.extreme.aldex), rownames(h.ep.aldex)),]
-h.eu.aldex <- h.eu.aldex[match(rownames(h.extreme.aldex), rownames(h.eu.aldex)),]
-h.up.aldex <- h.up.aldex[match(rownames(h.extreme.aldex), rownames(h.up.aldex)),]
-
-effect.groups <- rep("NA",nrow(h.extreme.aldex))
-effect.groups[c(1:decile)] <- "Top decile"
-effect.groups[c((decile+1):(length(effect.groups)-decile))] <- "Middle half"
-effect.groups[c((length(effect.groups)-decile+1):length(effect.groups))] <- "Bottom decile"
-effect.groups <- as.factor(effect.groups)
-
-pdf("16S_top_bottom_residuals_effect_sizes.pdf")
-
-plot(h.ep.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs protected\nand unexplained vs protected",xlab="explained vs protected",ylab="unexplained vs protected")
-cor(h.ep.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-# [1] -0.385572
-
-plot(h.eu.aldex$effect, h.up.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of explained vs unexplained\nand unexplained vs protected",xlab="explained vs unexplained",ylab="unexplained vs protected")
-cor(h.eu.aldex$effect, y = h.up.aldex$effect, use = "everything", method = "spearman")
-# [1] 0.6208453
-
-plot(h.up.aldex$effect, h.extreme.aldex$effect, pch=19,col=effect.groups, main="Effect sizes of unexplained vs protected\nand extreme deciles",xlab="unexplained vs protected",ylab="extreme deciles")
-cor(h.up.aldex$effect, y = h.extreme.aldex$effect, use = "everything", method = "spearman")
-# [1] 0.5096007
-
-dev.off()
+# check to see if effect sizes increase in extreme
