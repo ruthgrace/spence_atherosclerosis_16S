@@ -392,6 +392,31 @@ print(paste("Effect size of male vs. female sex for extreme residuals:", (abs(me
 print(paste("Effect size of male vs. female sex for intermediate residuals:", (abs(mean(diversity.intermediate.m) - mean(diversity.intermediate.f)) / sd(c(diversity.intermediate.m, diversity.intermediate.f)))))
 # [1] "Effect size of male vs. female sex for intermediate residuals: 0.00689408376308769"
 
+plot.extremes.metadata.aldex <- function(otu.tab,metadata.category,metadataname) {
+	residuals <- order(metadata.category,decreasing=TRUE)
+	decile <- round(length(residuals)/10)
+	top <- residuals[c(1:decile)]
+	bottom <- residuals[c((length(residuals)-decile + 1):length(residuals))]
+	otu.tab.metadata <- otu.tab[c(top,bottom),]
+	groups <- c(rep(paste("Top",metadataname),length(top)),rep(paste("Bottom",metadataname),length(bottom)))
+  
+  plot.aldex.volcano(data.frame(t(otu.tab.metadata)),groups)
+}
+
+pdf("aldex_plots_metadata_category_extremes.pdf")
+plot.extremes.metadata.aldex(otu.tab,metadata$TPAmm2,"TPA mm2")
+plot.extremes.metadata.aldex(otu.tab,metadata$Age,"Age")
+plot.extremes.metadata.aldex(otu.tab,metadata$PackYears,"Pack Years")
+plot.extremes.metadata.aldex(otu.tab,metadata$BPSys,"Systolic BP")
+plot.extremes.metadata.aldex(otu.tab,metadata$BPDias,"Diastolic BP")
+plot.extremes.metadata.aldex(otu.tab,metadata$chol,"cholesteral")
+plot.extremes.metadata.aldex(otu.tab,metadata$trig,"triglyceride")
+plot.extremes.metadata.aldex(otu.tab,metadata$hdl,"HDL")
+plot.extremes.metadata.aldex(otu.tab,metadata$ldl,"LDL")
+plot.extremes.metadata.aldex(otu.tab,metadata$Standardized.Predicted.Value,"Predicted")
+dev.off()
+
+#standardized predicted value has some significants - explore
+
 
 # Look at residual scores for stenosis (need data from Spence)
-
