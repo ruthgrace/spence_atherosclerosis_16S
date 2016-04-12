@@ -179,18 +179,18 @@ plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pc
 
 dev.off()
 
-ordered.res <- order(metadata$Standardized.Residual,decreasing=TRUE)
-decile <- round(nrow(metadata)/10)
-top.decile <- ordered.res[c(1:decile)]
-bottom.decile <- ordered.res[c((length(ordered.res)-decile+1):length(ordered.res))]
-otu.tab.rarefy <- otu.tab.rarefy[c(top.decile,bottom.decile),]
-otu.tab <- otu.tab[c(top.decile,bottom.decile),]
-groups <- c(rep("Top decile",decile),rep("Bottom decile",decile))
+residuals <- metadata$Standardized.Residual
+top <- which(residuals >= 2)
+bottom <- which(residuals <= -2)
+otu.tab.rarefy.extreme <- otu.tab.rarefy[c(top,bottom),]
+otu.tab.extreme <- otu.tab[c(top,bottom),]
+groups <- c(rep("Unexplained",length(top)),rep("Protected",length(bottom)))
 groups <- as.factor(groups)
+# all OTUs have at least 1 count :)
 
 #calculate distance matrix
-unweighted <- getDistanceMatrix(otu.tab.rarefy,tree,method="unweighted",verbose=TRUE)
-all.dist.mat <- getDistanceMatrix(otu.tab,tree,method="all",verbose=TRUE)
+unweighted <- getDistanceMatrix(otu.tab.rarefy.extreme,tree,method="unweighted",verbose=TRUE)
+all.dist.mat <- getDistanceMatrix(otu.tab.extreme,tree,method="all",verbose=TRUE)
 
 weighted <- all.dist.mat[["weighted"]]
 information <- all.dist.mat[["information"]]
@@ -207,7 +207,7 @@ weighted.pcoa <- pcoa(weighted)
 information.pcoa <- pcoa(information)
 ratio_no_log.pcoa <- pcoa(ratio_no_log)
 
-pdf("pcoa_plots_extreme_deciles.pdf")
+pdf("pcoa_plots_extreme_residuals.pdf")
 
 plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, groups, "principal coordinate analysis", c("purple","blue","red"))
 
