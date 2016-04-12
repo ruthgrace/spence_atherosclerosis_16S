@@ -277,6 +277,7 @@ d.conds <- c(rep("Male",ncol(d.extreme.m)),rep("Female",ncol(d.extreme.f)),rep("
 
 d.aldex <- aldex(d,d.conds)
 
+
 pdf("aldex_male_vs_female.pdf")
 
 aldex.plot(d.aldex,type="MA")
@@ -362,3 +363,56 @@ print(paste("Effect size of missing prevotella in Intermediate M:",intermediate.
 print(paste("Effect size of missing prevotella in Intermediate F:",intermediate.f.aldex$effect[which(rownames(intermediate.f.aldex) ==  prevotella)]))
 # [1] "Effect size of missing prevotella in Intermediate F: -0.0249854285733147"
 
+# SHANNON DIVERSITY
+library(vegan)
+diversity.extreme.m <- diversity(t(d.extreme.m),index="shannon")
+diversity.extreme.f <- diversity(t(d.extreme.f),index="shannon")
+diversity.intermediate.m <- diversity(t(d.intermediate.m),index="shannon")
+diversity.intermediate.f <- diversity(t(d.intermediate.f),index="shannon")
+
+summary(diversity.extreme.f)
+  #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  # 3.482   3.867   4.012   3.997   4.195   4.373 
+summary(diversity.intermediate.f)
+  #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  # 3.419   3.903   4.094   4.058   4.247   4.529 
+summary(diversity.intermediate.m)
+  #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  # 3.435   3.960   4.120   4.056   4.233   4.386 
+
+summary(diversity.extreme.m[which(groups.extreme.m == "Protected")])
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 3.282   3.763   3.901   3.911   4.051   4.298 
+summary(diversity.extreme.m[which(groups.extreme.m == "Unexplained")])
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 3.707   3.820   3.918   3.970   4.096   4.337 
+summary(diversity.extreme.m)
+  #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  # 3.282   3.763   3.901   3.923   4.063   4.337 
+
+# protected vs unexplained
+print(paste("Effect size of protected vs. unexplained diversity for male sex with extreme residuals:", (abs(mean(diversity.extreme.m[which(groups.extreme.m == "Protected")]) - mean(diversity.extreme.m[which(groups.extreme.m == "Unexplained")])) / sd(diversity.extreme.m))))
+# [1] "Effect size of protected vs. unexplained diversity for male sex with extreme residuals: 0.244250455280845"
+print(paste("Effect size of protected vs. unexplained diversity for female sex with extreme residuals:", (abs(mean(diversity.extreme.f[which(groups.extreme.f == "Protected")]) - mean(diversity.extreme.f[which(groups.extreme.f == "Unexplained")])) / sd(diversity.extreme.f))))
+# [1] "Effect size of protected vs. unexplained diversity for female sex with extreme residuals: 0.222511433991768"
+print(paste("Effect size of protected vs. unexplained diversity for male sex with intermediate residuals:", (abs(mean(diversity.intermediate.m[which(groups.intermediate.m == "Protected")]) - mean(diversity.intermediate.m[which(groups.intermediate.m == "Unexplained")])) / sd(diversity.intermediate.m))))
+# [1] "Effect size of protected vs. unexplained diversity for male sex with intermediate residuals: 0.276879902237068"
+print(paste("Effect size of protected vs. unexplained diversity for female sex with intermediate residuals:", (abs(mean(diversity.intermediate.f[which(groups.intermediate.f == "Protected")]) - mean(diversity.intermediate.f[which(groups.intermediate.f == "Unexplained")])) / sd(diversity.intermediate.f))))
+# [1] "Effect size of protected vs. unexplained diversity for female sex with intermediate residuals: 0.2381063694763"
+
+# extreme vs intermediate
+print(paste("Effect size of extreme vs. intermediate diversity for male sex:", (abs(mean(diversity.extreme.m) - mean(diversity.intermediate.m)) / sd(c(diversity.extreme.m, diversity.intermediate.m)))))
+# [1] "Effect size of extreme vs. intermediate diversity for male sex: 0.556190597796183"
+print(paste("Effect size of extreme vs. intermediate diversity for female sex:", (abs(mean(diversity.extreme.f) - mean(diversity.intermediate.f)) / sd(c(diversity.extreme.f, diversity.intermediate.f)))))
+# [1] "Effect size of extreme vs. intermediate diversity for female sex: 0.238379974990715"
+
+# male vs female
+print(paste("Effect size of male vs. female sex for extreme residuals:", (abs(mean(diversity.extreme.m) - mean(diversity.extreme.f)) / sd(c(diversity.extreme.m, diversity.extreme.f)))))
+# [1] "Effect size of male vs. female sex for extreme residuals: 0.297710846323797"
+print(paste("Effect size of male vs. female sex for intermediate residuals:", (abs(mean(diversity.intermediate.m) - mean(diversity.intermediate.f)) / sd(c(diversity.intermediate.m, diversity.intermediate.f)))))
+# [1] "Effect size of male vs. female sex for intermediate residuals: 0.00689408376308769"
+
+
+# Look at residual scores for stenosis (need data from Spence)
+
+#look at extremes of bmi, hdl, etc.
