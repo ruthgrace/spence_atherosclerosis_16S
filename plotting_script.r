@@ -392,9 +392,6 @@ print(paste("Effect size of male vs. female sex for extreme residuals:", (abs(me
 print(paste("Effect size of male vs. female sex for intermediate residuals:", (abs(mean(diversity.intermediate.m) - mean(diversity.intermediate.f)) / sd(c(diversity.intermediate.m, diversity.intermediate.f)))))
 # [1] "Effect size of male vs. female sex for intermediate residuals: 0.00689408376308769"
 
-#PCOA EXTREMES
-
-
 
 # Look at residual scores for stenosis (need data from Spence)
 

@@ -234,3 +234,52 @@ plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pc
 plot.as.number(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, metadata$ldl, "LDL", c("blue","red","purple"))
 
 dev.off()
+
+plot.extremes.metadata <- function(otu.tab,otu.tab.rarefy,tree,metadata.category,metadataname) {
+	residuals <- order(metadata.category,decreasing=TRUE)
+	decile <- round(length(residuals)/10)
+	top <- residuals[c(1:decile)]
+	bottom <- residuals[c((length(residuals)-decile + 1):length(residuals))]
+	otu.tab.rarefy.metadata <- otu.tab.rarefy[c(top,bottom),]
+	otu.tab.metadata <- otu.tab[c(top,bottom),]
+	groups <- c(rep(paste("Top",metadataname),length(top)),rep(paste("Bottom",metadataname),length(bottom)))
+	groups <- as.factor(groups)
+	
+	#calculate distance matrix
+	unweighted <- getDistanceMatrix(otu.tab.rarefy.metadata,tree,method="unweighted",verbose=TRUE)
+	all.dist.mat <- getDistanceMatrix(otu.tab.metadata,tree,method="all",verbose=TRUE)
+
+	weighted <- all.dist.mat[["weighted"]]
+	information <- all.dist.mat[["information"]]
+	ratio_no_log <- all.dist.mat[["ratio_no_log"]]
+
+	#output distance matrices
+	# write.table(unweighted,file=paste(metadata.category,"unweighted_distance_matrix_extreme_deciles.txt",sep="_"),sep="\t",quote=FALSE)
+	# write.table(weighted,file=paste(metadata.category,"weighted_distance_matrix_extreme_deciles.txt",sep="_"),sep="\t",quote=FALSE)
+	# write.table(information,file=paste(metadata.category,"information_distance_matrix_extreme_deciles.txt",sep="_"),sep="\t",quote=FALSE)
+	# write.table(ratio_no_log,file=paste(metadata.category,"ratio_normalize_distance_matrix_extreme_deciles.txt",sep="_"),sep="\t",quote=FALSE)
+
+	unweighted.pcoa <- pcoa(unweighted)
+	weighted.pcoa <- pcoa(weighted)
+	information.pcoa <- pcoa(information)
+	ratio_no_log.pcoa <- pcoa(ratio_no_log)
+
+	plot.as.factor(unweighted.pcoa, weighted.pcoa, information.pcoa, ratio_no_log.pcoa, groups, metadataname, c("blue","red"))
+
+}
+
+metadata.category <- metadata$TPAmm2
+metadataname <- "TPA mm2"
+
+pdf("pcoa_plost_metadata_category_extremes.pdf")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$TPAmm2,"TPA mm2")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$Age,"Age")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$PackYears,"Pack Years")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$BPSys,"Systolic BP")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$BPDias,"Diastolic BP")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$chol,"cholesteral")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$trig,"triglyceride")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$hdl,"HDL")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$ldl,"LDL")
+plot.extremes.metadata(otu.tab,otu.tab.rarefy,tree,metadata$Standardized.Predicted.Value,"Predicted")
+dev.off()
