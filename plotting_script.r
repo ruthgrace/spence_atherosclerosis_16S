@@ -417,6 +417,60 @@ plot.extremes.metadata.aldex(otu.tab,metadata$Standardized.Predicted.Value,"Pred
 dev.off()
 
 #standardized predicted value has some significants - explore
+spv <- order(metadata$Standardized.Predicted.Value,decreasing=TRUE)
+decile <- round(length(spv)/10)
+top <- spv[c(1:decile)]
+bottom <- spv[c((length(spv)-decile + 1):length(spv))]
+otu.tab.svp <- otu.tab[c(top,bottom),]
+groups <- c(rep(paste("Top","Predicted"),length(top)),rep(paste("Bottom","Predicted"),length(bottom)))
 
+spv.aldex <- aldex(data.frame(t(otu.tab.svp)),groups)
+spv.aldex <- spv.aldex[order(abs(spv.aldex$effect),decreasing=TRUE),]
+spv.otu <- rownames(spv.aldex)[which(spv.aldex$we.eBH <= 0.05)]
+spv.taxa <- taxa.col[match(spv.otu,rownames(taxa.col)),1]
+print(spv.taxa)
+# [1] unclassified|100 Coprococcus|91  
+# 138 Levels: Acidaminococcus|100 Adlercreutzia|100 ... Weissella|100
+print(extreme.m.aldex[match(spv.otu,rownames(extreme.m.aldex)),])
+# rab.all rab.win.Protected rab.win.Unexplained  diff.btw diff.win
+# 86 0.8902948         0.6899341            1.259840 0.7372637 2.727213
+# 33 4.6199940         4.5259409            4.839426 0.1399725 1.820813
+# diff.btw.025 diff.btw.975 diff.win.025 diff.win.975     effect effect.025
+# 86    -3.890029     6.002033    0.3194901     5.541354 0.27594571  -4.119158
+# 33    -3.473844     2.987637    0.2815473     3.857473 0.07190766  -4.237978
+# effect.975   overlap     we.ep    we.eBH     wi.ep    wi.eBH
+# 86   7.189024 0.3281251 0.4185800 0.8736268 0.2348797 0.7999611
+# 33   3.815769 0.4687500 0.9171129 0.9879872 0.8926024 0.9865305
+print(extreme.f.aldex[match(spv.otu,rownames(extreme.f.aldex)),])
+# rab.all rab.win.Protected rab.win.Unexplained    diff.btw diff.win
+# 86 0.8453854          1.283060           0.5652007 -0.62050192 2.186366
+# 33 4.4924272          4.490632           4.4949703 -0.02118608 1.917428
+# diff.btw.025 diff.btw.975 diff.win.025 diff.win.975       effect effect.025
+# 86    -3.868434     3.273848    0.2707417     4.758016 -0.357925670  -5.655260
+# 33    -4.801129     3.223706    0.2533891     6.020941 -0.007999378  -5.426252
+# effect.975   overlap     we.ep    we.eBH     wi.ep    wi.eBH
+# 86   3.856239 0.3318486 0.3368028 0.9227263 0.3501991 0.9326479
+# 33   4.017823 0.4922049 0.8432237 0.9905316 0.9258278 0.9922410
+print(intermediate.m.aldex[match(spv.otu,rownames(intermediate.m.aldex)),])
+# rab.all rab.win.Protected rab.win.Unexplained    diff.btw diff.win
+# 86 1.346272          1.441525            1.267438 -0.03775829 2.696193
+# 33 4.912891          4.866859            4.955281  0.01898387 1.776607
+# diff.btw.025 diff.btw.975 diff.win.025 diff.win.975       effect effect.025
+# 86    -4.353421     4.722191    0.4328533     5.589769 -0.013551302  -3.328893
+# 33    -3.267390     3.263029    0.3085356     3.955361  0.008311554  -3.683919
+# effect.975   overlap     we.ep    we.eBH     wi.ep    wi.eBH
+# 86   3.635860 0.4925272 0.8729045 0.9739340 0.8055559 0.9693421
+# 33   3.337985 0.4952446 0.9292273 0.9846214 0.9162946 0.9874256
+print(intermediate.f.aldex[match(spv.otu,rownames(intermediate.f.aldex)),])
+# rab.all rab.win.Protected rab.win.Unexplained    diff.btw diff.win
+# 86 1.396652          1.297878            1.438710 -0.03533186 2.408819
+# 33 4.123899          4.111840            4.151104 -0.08414671 1.554466
+# diff.btw.025 diff.btw.975 diff.win.025 diff.win.975      effect effect.025
+# 86    -4.673503     4.404538    0.3646155     5.140760 -0.01577379  -4.668171
+# 33    -2.818697     2.718209    0.2414507     3.738445 -0.05109171  -3.654728
+# effect.975   overlap     we.ep    we.eBH     wi.ep    wi.eBH
+# 86   3.873488 0.4903581 0.8382479 0.9780627 0.8288777 0.9656435
+# 33   3.940651 0.4756658 0.9055308 0.9850980 0.8700055 0.9748175
 
 # Look at residual scores for stenosis (need data from Spence)
+
