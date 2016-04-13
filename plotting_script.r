@@ -480,4 +480,42 @@ stenosis.res <- stenosis.metadata$Standardized.Residual[match(metadata$idno,sten
 pdf("aldex_plots_stenosis.pdf")
 plot.extremes.metadata.aldex(otu.tab,stenosis.svp,"Predicted")
 plot.extremes.metadata.aldex(otu.tab,stenosis.res,"Residual")
+plot(metadata$Standardized.Residual,stenosis.res)
+dev.off()
+
+# STENOSIS EFFECT SIZES VS TPA EFFECT SIZES
+stenosis.order <- order(stenosis.res,decreasing=TRUE)
+residual.order <- order(metadata$Standardized.Residual,decreasing=TRUE)
+decile <- round(length(stenosis.order)/10)
+
+stenosis.top <- rownames(metadata)[stenosis.order[c(1:decile)]]
+residual.top <- rownames(metadata)[residual.order[c(1:decile)]]
+stenosis.bottom <- rownames(metadata)[stenosis.order[c((length(stenosis.order) - decile + 1):length(stenosis.order))]]
+residual.bottom <- rownames(metadata)[residual.order[c((length(residual.order) - decile + 1):length(residual.order))]]
+
+intersecting.samples <- c(intersect(stenosis.top, residual.top), intersect(stenosis.bottom, residual.bottom), intersect(stenosis.top, residual.bottom), intersect(stenosis.bottom, residual.top))
+stenosis.top <- stenosis.top[which(!(stenosis.top %in% intersecting.samples))]
+stenosis.bottom <- stenosis.bottom[which(!(stenosis.bottom %in% intersecting.samples))]
+residual.top <- residual.top[which(!(residual.top %in% intersecting.samples))]
+residual.bottom <- residual.bottom[which(!(residual.bottom %in% intersecting.samples))]
+
+stenosis.counts <- data.frame(otu.tab[c(match(stenosis.top,rownames(otu.tab)),match(stenosis.bottom,rownames(otu.tab))),],check.names=FALSE)
+residual.counts <- data.frame(otu.tab[c(match(residual.top,rownames(otu.tab)),match(residual.bottom,rownames(otu.tab))),],check.names=FALSE)
+stenosis.conds <- c(rep("Top decile",length(stenosis.top)),rep("Bottom decile",length(stenosis.bottom)))
+residual.conds <- c(rep("Top decile",length(residual.top)),rep("Bottom decile",length(residual.bottom)))
+stenosis.aldex <- aldex(data.frame(t(stenosis.counts)),stenosis.conds)
+residual.aldex <- aldex(data.frame(t(residual.counts)),residual.conds)
+
+mycolor <- c(col2rgb("turquoise4"))
+red <- mycolor[1]
+green <- mycolor[2]
+blue <- mycolor[3]
+mycolor <- rgb(red/255, green/255, blue/255, 0.3)
+
+pdf("stenosis_effect_sizes_comparison.pdf")
+
+plot(residual.aldex$effect, stenosis.aldex$effect, pch=19,col=mycolor, main="Effect sizes of OTUs between stenosis\nand TPA mm2 extreme decile residual scorers",xlab="TPA mm2",ylab="Stenosis residuals")
+cor(residual.aldex$effect, y = stenosis.aldex$effect, use = "everything", method = "spearman")
+# [1] -0.06968418
+
 dev.off()
