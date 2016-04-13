@@ -472,5 +472,12 @@ print(intermediate.f.aldex[match(spv.otu,rownames(intermediate.f.aldex)),])
 # 86   3.873488 0.4903581 0.8382479 0.9780627 0.8288777 0.9656435
 # 33   3.940651 0.4756658 0.9055308 0.9850980 0.8700055 0.9748175
 
-# Look at residual scores for stenosis (need data from Spence)
-
+# STENOSIS RESIDUALS
+stenosis.metadata <- read.table("data/stenosis_residuals.tsv",sep="\t",check.names=FALSE,quote="",header=TRUE,row.names=1)
+colnames(stenosis.metadata) <- gsub(" ",".",colnames(stenosis.metadata))
+stenosis.svp <- stenosis.metadata$Standardized.Predicted.Value[match(metadata$idno,stenosis.metadata$idno)]
+stenosis.res <- stenosis.metadata$Standardized.Residual[match(metadata$idno,stenosis.metadata$idno)]
+pdf("aldex_plots_stenosis.pdf")
+plot.extremes.metadata.aldex(otu.tab,stenosis.svp,"Predicted")
+plot.extremes.metadata.aldex(otu.tab,stenosis.res,"Residual")
+dev.off()
