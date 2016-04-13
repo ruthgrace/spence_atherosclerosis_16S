@@ -22,6 +22,29 @@ metadata$smoker <- as.factor(metadata$smoker)
 
 colnames(metadata) <- gsub(" ",".",colnames(metadata))
 
+# get DADA2 ISU counts
+isu.tab <- read.table("data/dada2_nochim.txt", header=T, sep="\t",quote="",comment.char="",stringsAsFactors=FALSE,check.names=FALSE)
+isu.metadata <- read.table("data/dada2_taxonomy.txt", header=T, row.names=1, sep="\t",quote="",comment.char="",stringsAsFactors=FALSE,check.names=FALSE)
+
+isu.tab <- t(isu.tab)
+colnames(isu.tab) <- isu.tab[1,]
+isu.tab <- isu.tab[2:nrow(isu.tab),]
+isu.tab <- data.frame(isu.tab,check.names=FALSE,stringsAsFactors=FALSE)
+isu.tab <- as.data.frame(lapply(isu.tab,as.numeric))
+colnames(isu.tab) <- gsub("^X","",colnames(isu.tab))
+# duplicate col names seem to all be equal, get rid of all that end in '.1' or '.2'
+duplicate.colnames <- grep("[.][0-9]$",colnames(isu.tab))
+duplicate.colnames <- colnames(isu.tab)[grep("[.][0-9]$",colnames(isu.tab))]
+#add also the contaminated sample to be removed
+duplicate.colnames <- c("mix",duplicate.colnames)
+isu.tab <- isu.tab[,which(!(colnames(isu.tab) %in% duplicate.colnames))]
+# length(which(colnames(isu.tab) %in% rownames(metadata))) # all isu.tab colnames should be in metadata rownames
+# remove all ISUs less than 0.1% abundant in all samples
+isu.sum <- apply(isu.tab,2,sum)
+isu.sum.01 <- isu.sum*0.001
+isu.filter <- apply(isu.tab,1,function(x) {return(length(which(x > isu.sum.01)))} )
+isu.tab <- isu.tab[which(isu.filter > 0),]
+
 # get 16S rRNA gene sequencing count
 otu.tab <- read.table("data/td_OTU_tag_mapped_lineage.txt", header=T, row.names=1, sep="\t",quote="",comment.char="",stringsAsFactors=FALSE,check.names=FALSE)
 
@@ -70,6 +93,21 @@ extreme.f <- extreme[which(metadata[match(rownames(extreme),rownames(metadata)),
 intermediate.m <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "M"),]
 intermediate.f <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "F"),]
 
+isu.tab <- isu.tab[,match(rownames(metadata),colnames(isu.tab))]
+isu.tab <- t(isu.tab)
+
+# get all samples with residual scores > 2 and < -2 (2 stdev away from median)
+isu.extreme <- isu.tab[which(metadata$Standardized.Residual >= 2 | metadata$Standardized.Residual <= -2),]
+# get all samples with residual scores between 1 and 2 and -1 and -2
+isu.intermediate.top <- isu.tab[which(metadata$Standardized.Residual >= 1 & metadata$Standardized.Residual <2),]
+isu.intermediate.bottom <- isu.tab[which(metadata$Standardized.Residual <= -1 & metadata$Standardized.Residual > -2),]
+isu.intermediate <- isu.intermediate <- t(data.frame(t(isu.intermediate.top), t(isu.intermediate.bottom), check.names=FALSE))
+#separate by sex
+isu.extreme.m <- isu.extreme[which(metadata[match(rownames(isu.extreme),rownames(metadata)),"Sex"] == "M"),]
+isu.extreme.f <- isu.extreme[which(metadata[match(rownames(isu.extreme),rownames(metadata)),"Sex"] == "F"),]
+isu.intermediate.m <- isu.intermediate[which(metadata[match(rownames(isu.intermediate),rownames(metadata)),"Sex"] == "M"),]
+isu.intermediate.f <- isu.intermediate[which(metadata[match(rownames(isu.intermediate),rownames(metadata)),"Sex"] == "F"),]
+
 make.groups <- function(mytable,metadata) {
   mygroups <- rep("NA",nrow(mytable))
   residuals <- metadata[match(rownames(mytable),rownames(metadata)),"Standardized.Residual"]
@@ -89,6 +127,11 @@ d.extreme.f <- t(extreme.f)
 d.intermediate.m <- t(intermediate.m)
 d.intermediate.f <- t(intermediate.f)
 
+d.isu.extreme.m <- t(isu.extreme.m)
+d.isu.extreme.f <- t(isu.extreme.f)
+d.isu.intermediate.m <- t(isu.intermediate.m)
+d.isu.intermediate.f <- t(isu.intermediate.f)
+
 remove.zero.features <- function(mytable) {
   feature.sum <- apply(mytable,1,sum)
   mytable <- mytable[which(feature.sum > 0),]
@@ -99,6 +142,12 @@ d.extreme.m <- remove.zero.features(d.extreme.m)
 d.extreme.f <- remove.zero.features(d.extreme.f)
 d.intermediate.m <- remove.zero.features(d.intermediate.m)
 d.intermediate.f <- remove.zero.features(d.intermediate.f)
+
+d.isu.extreme.m <- remove.zero.features(d.isu.extreme.m)
+d.isu.extreme.f <- remove.zero.features(d.isu.extreme.f)
+d.isu.intermediate.m <- remove.zero.features(d.isu.intermediate.m)
+d.isu.intermediate.f <- remove.zero.features(d.isu.intermediate.f)
+
 
 # adjust zeros
 d.extreme.m.adj.zero <- t(cmultRepl(t(d.extreme.m),method="CZM"))
@@ -228,12 +277,23 @@ plot.aldex.volcano(data.frame(d.extreme.f),as.character(groups.extreme.f))
 plot.aldex.volcano(data.frame(d.intermediate.m),as.character(groups.intermediate.m))
 plot.aldex.volcano(data.frame(d.intermediate.f),as.character(groups.intermediate.f))
 
+plot.aldex.volcano(data.frame(d.isu.extreme.m),as.character(groups.extreme.m))
+plot.aldex.volcano(data.frame(d.isu.extreme.f),as.character(groups.extreme.f))
+plot.aldex.volcano(data.frame(d.isu.intermediate.m),as.character(groups.intermediate.m))
+plot.aldex.volcano(data.frame(d.isu.intermediate.f),as.character(groups.intermediate.f))
+
 dev.off()
 
 extreme.m.aldex <- aldex(data.frame(d.extreme.m),as.character(groups.extreme.m))
 extreme.f.aldex <- aldex(data.frame(d.extreme.f),as.character(groups.extreme.f))
 intermediate.m.aldex <- aldex(data.frame(d.intermediate.m),as.character(groups.intermediate.m))
 intermediate.f.aldex <- aldex(data.frame(d.intermediate.f),as.character(groups.intermediate.f))
+
+isu.extreme.m.aldex <- aldex(data.frame(d.isu.extreme.m),as.character(groups.extreme.m))
+isu.extreme.f.aldex <- aldex(data.frame(d.isu.extreme.f),as.character(groups.extreme.f))
+isu.intermediate.m.aldex <- aldex(data.frame(d.isu.intermediate.m),as.character(groups.intermediate.m))
+isu.intermediate.f.aldex <- aldex(data.frame(d.isu.intermediate.f),as.character(groups.intermediate.f))
+
 
 mycolor <- c(col2rgb("turquoise4"))
 red <- mycolor[1]
@@ -255,6 +315,23 @@ cor(extreme.m.aldex[match(common.features,rownames(extreme.m.aldex)),"effect"], 
 plot(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of OTUs between female\nextreme and intermediate residual scorers",xlab="Extreme residual scores",ylab="Intermediate residual scores")
 cor(extreme.f.aldex[match(common.features,rownames(extreme.f.aldex)),"effect"], y = intermediate.f.aldex[match(common.features,rownames(intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
 # [1] -0.05444832
+
+common.features <- intersect(intersect(intersect(rownames(isu.extreme.m.aldex),rownames(isu.extreme.f.aldex)), rownames(isu.intermediate.m.aldex)), rownames(isu.intermediate.f.aldex))
+plot(isu.extreme.m.aldex[match(common.features,rownames(isu.extreme.m.aldex)),"effect"], isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of ISUs between male\nand female extreme residual scorers",xlab="Male sex",ylab="Female sex")
+cor(isu.extreme.m.aldex[match(common.features,rownames(isu.extreme.m.aldex)),"effect"], y = isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] -0.08417705
+plot(isu.intermediate.m.aldex[match(common.features,rownames(isu.intermediate.m.aldex)),"effect"], isu.intermediate.f.aldex[match(common.features,rownames(isu.intermediate.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of ISUs between male\nand female intermediate residual scorers",xlab="Male sex",ylab="Female sex")
+cor(isu.intermediate.m.aldex[match(common.features,rownames(isu.intermediate.m.aldex)),"effect"], y = isu.intermediate.f.aldex[match(common.features,rownames(isu.intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] 0.2434751
+plot(isu.extreme.m.aldex[match(common.features,rownames(isu.extreme.m.aldex)),"effect"], isu.intermediate.m.aldex[match(common.features,rownames(isu.intermediate.m.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of ISUs between male\nextreme and intermediate residual scorers",xlab="Extreme residual scores",ylab="Intermediate residual scores")
+cor(isu.extreme.m.aldex[match(common.features,rownames(isu.extreme.m.aldex)),"effect"], y = isu.intermediate.m.aldex[match(common.features,rownames(isu.intermediate.m.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] 0.008379229
+plot(isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"effect"], isu.intermediate.f.aldex[match(common.features,rownames(isu.intermediate.f.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of ISUs between female\nextreme and intermediate residual scorers",xlab="Extreme residual scores",ylab="Intermediate residual scores")
+cor(isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"effect"], y = isu.intermediate.f.aldex[match(common.features,rownames(isu.intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
+# [1] -0.05444832
+
+
+
 dev.off()
 
 # MALE VS FEMALE ALDEX PLOTS
