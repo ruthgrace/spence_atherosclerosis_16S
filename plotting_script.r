@@ -1,5 +1,6 @@
+#!/usr/bin/Rscript
 library(zCompositions)
-library(randomcoloR)
+# library(randomcoloR)
 library(compositions)
 library(ALDEx2)
 library(stringr)
