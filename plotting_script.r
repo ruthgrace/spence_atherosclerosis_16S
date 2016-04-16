@@ -278,6 +278,17 @@ d.extreme.f.family.names <- rownames(d.extreme.f.family.adj.zero)
 d.intermediate.m.family.names <- rownames(d.intermediate.m.family.adj.zero)
 d.intermediate.f.family.names <- rownames(d.intermediate.f.family.adj.zero)
 
+d.isu.extreme.m.adj.zero <- adjust.zeros(d.isu.extreme.m)
+d.isu.extreme.f.adj.zero <- adjust.zeros(d.isu.extreme.f)
+d.isu.intermediate.m.adj.zero <- adjust.zeros(d.isu.intermediate.m)
+d.isu.intermediate.f.adj.zero <- adjust.zeros(d.isu.intermediate.f)
+
+d.isu.extreme.m.names <- rownames(d.isu.extreme.m.adj.zero)
+d.isu.extreme.f.names <- rownames(d.isu.extreme.f.adj.zero)
+d.isu.intermediate.m.names <- rownames(d.isu.intermediate.m.adj.zero)
+d.isu.intermediate.f.names <- rownames(d.isu.intermediate.f.adj.zero)
+
+
 taxa.col <- data.frame(otu.sp,otu.sp)
 colnames(taxa.col) <- c("taxon","color")
 taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
@@ -353,6 +364,11 @@ d.extreme.m.family.clr <- plot.biplot(d.extreme.m.family.adj.zero,col.extreme.m,
 d.extreme.f.family.clr <- plot.biplot(d.extreme.f.family.adj.zero,col.extreme.f,groups.extreme.f,c("darkblue","darkred"))
 d.intermediate.m.family.clr <- plot.biplot(d.intermediate.m.family.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
 d.intermediate.f.family.clr <- plot.biplot(d.intermediate.f.family.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
+
+d.isu.extreme.m.clr <- plot.biplot(d.isu.extreme.m.adj.zero,col.extreme.m,groups.extreme.m,c("darkblue","darkred"))
+d.isu.extreme.f.clr <- plot.biplot(d.isu.extreme.f.adj.zero,col.extreme.f,groups.extreme.f,c("darkblue","darkred"))
+d.isu.intermediate.m.clr <- plot.biplot(d.isu.intermediate.m.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
+d.isu.intermediate.f.clr <- plot.biplot(d.isu.intermediate.f.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
 
 dev.off()
 
@@ -431,18 +447,27 @@ plot.aldex.volcano(data.frame(d.isu.intermediate.m),as.character(groups.intermed
 plot.aldex.volcano(data.frame(d.isu.intermediate.f),as.character(groups.intermediate.f))
 
 # male and female extreme together
-d.extreme <- data.frame(matrix(nrow=nrow(taxa.col),ncol=(ncol(d.extreme.m) + ncol(d.extreme.f))))
-rownames(d.extreme) <- rownames(taxa.col)
-d.extreme[,c(1:ncol(d.extreme.m))] <- d.extreme.m[match(rownames(d.extreme),rownames(d.extreme.m)),]
-d.extreme[,c((ncol(d.extreme.m)+1):ncol(d.extreme))] <- d.extreme.f[match(rownames(d.extreme),rownames(d.extreme.f)),]
-colnames(d.extreme) <- c(colnames(d.extreme.m),colnames(d.extreme.f))
-groups.extreme <- c(groups.extreme.m,groups.extreme.f)
-d.extreme.no.na <- apply(d.extreme,1:2,function(x) { if (is.na(x)) { return(0); } else { return(x); }})
-rownames(d.extreme.no.na) <- rownames(d.extreme)
-colnames(d.extreme.no.na) <- colnames(d.extreme)
-d.extreme <- d.extreme.no.na
+d.isu.extreme <- data.frame(matrix(nrow=nrow(taxa.col),ncol=(ncol(d.isu.extreme.m) + ncol(d.isu.extreme.f))))
+rownames(d.isu.extreme) <- rownames(taxa.col)
+d.isu.extreme[,c(1:ncol(d.isu.extreme.m))] <- d.isu.extreme.m[match(rownames(d.isu.extreme),rownames(d.isu.extreme.m)),]
+d.isu.extreme[,c((ncol(d.isu.extreme.m)+1):ncol(d.isu.extreme))] <- d.isu.extreme.f[match(rownames(d.isu.extreme),rownames(d.isu.extreme.f)),]
+colnames(d.isu.extreme) <- c(colnames(d.isu.extreme.m),colnames(d.isu.extreme.f))
+groups.isu.extreme <- c(groups.extreme.m,groups.extreme.f)
+d.isu.extreme.no.na <- apply(d.isu.extreme,1:2,function(x) { if (is.na(x)) { return(0); } else { return(x); }})
+rownames(d.isu.extreme.no.na) <- rownames(d.isu.extreme)
+colnames(d.isu.extreme.no.na) <- colnames(d.isu.extreme)
+d.isu.extreme <- d.isu.extreme.no.na
 
-plot.aldex.volcano(data.frame(d.extreme),as.character(groups.extreme))
+plot.aldex.volcano(data.frame(d.isu.extreme),as.character(groups.isu.extreme))
+
+middle.top <- isu.tab[which(metadata$Standardized.Residual > 0.6 & metadata$Standardized.Residual < 1),]
+middle.bottom <- isu.tab[which(metadata$Standardized.Residual < -0.6 & metadata$Standardized.Residual > -1),]
+middle <- data.frame(t(middle.top), t(middle.bottom))
+colnames(middle) <- c(rownames(middle.top),rownames(middle.bottom))
+groups.middle <- c(rep("Unexplained",nrow(middle.top)),rep("Protected",nrow(middle.bottom)))
+
+plot.aldex.volcano(data.frame(middle),as.character(groups.middle))
+
 dev.off()
 
 extreme.m.aldex <- aldex(data.frame(d.extreme.m),as.character(groups.extreme.m))
@@ -455,6 +480,16 @@ isu.extreme.f.aldex <- aldex(data.frame(d.isu.extreme.f),as.character(groups.ext
 isu.intermediate.m.aldex <- aldex(data.frame(d.isu.intermediate.m),as.character(groups.intermediate.m))
 isu.intermediate.f.aldex <- aldex(data.frame(d.isu.intermediate.f),as.character(groups.intermediate.f))
 
+d.isu.extreme.m.filter <- apply(d.isu.extreme.m.clr,2,function(x) { return(length(which(x <= 0))); })
+threshhold <- round(nrow(d.isu.extreme.m.clr)*2/3)
+d.isu.extreme.m.rare <- d.isu.extreme.m[which(d.isu.extreme.m.filter <= threshhold),]
+
+d.isu.extreme.f.filter <- apply(d.isu.extreme.f.clr,2,function(x) { return(length(which(x <= 0))); })
+threshhold <- round(nrow(d.isu.extreme.f.clr)*2/3)
+d.isu.extreme.f.rare <- d.isu.extreme.f[which(d.isu.extreme.f.filter <= threshhold),]
+rownames(d.isu.extreme.f.rare) <- 
+isu.extreme.m.rare.aldex <- aldex(data.frame(d.isu.extreme.m.rare),as.character(groups.extreme.m))
+isu.extreme.f.rare.aldex <- aldex(data.frame(d.isu.extreme.f.rare),as.character(groups.extreme.f))
 
 mycolor <- c(col2rgb("turquoise4"))
 red <- mycolor[1]
@@ -491,8 +526,42 @@ plot(isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"e
 cor(isu.extreme.f.aldex[match(common.features,rownames(isu.extreme.f.aldex)),"effect"], y = isu.intermediate.f.aldex[match(common.features,rownames(isu.intermediate.f.aldex)),"effect"], use = "everything", method = "spearman")
 # [1] -0.05444832
 
+common.features <- intersect(rownames(isu.extreme.m.rare.aldex),rownames(isu.extreme.f.rare.aldex))
+plot(isu.extreme.m.rare.aldex[match(common.features,rownames(isu.extreme.m.rare.aldex)),"effect"],isu.extreme.f.rare.aldex[match(common.features,rownames(isu.extreme.f.rare.aldex)),"effect"], pch=19,col=mycolor, main="Effect sizes of ISUs between extreme\nmale and female residuals scores",xlab="Male residual scores for ISUs with abundance 1/3 less than gm",ylab="Female residual scores for ISUs with abundance 1/3 less than gm")
+cor(isu.extreme.m.rare.aldex[match(common.features,rownames(isu.extreme.m.rare.aldex)),"effect"], y = isu.extreme.f.rare.aldex[match(common.features,rownames(isu.extreme.f.rare.aldex)),"effect"], use = "everything", method = "spearman")
+isu.extreme.m.rare.aldex <- aldex(data.frame(d.isu.extreme.m.rare),as.character(groups.extreme.m))
+isu.extreme.f.rare.aldex <- aldex(data.frame(d.isu.extreme.f.rare),as.character(groups.extreme.f))
 
+dev.off()
 
+myred <- c(col2rgb("red"))
+red <- myred[1]
+green <- myred[2]
+blue <- myred[3]
+myred <- rgb(red/255, green/255, blue/255, 0.3)
+
+myblue <- c(col2rgb("blue"))
+red <- myblue[1]
+green <- myblue[2]
+blue <- myblue[3]
+myblue <- rgb(red/255, green/255, blue/255, 0.3)
+
+# MIGRATING POINTS BETWEEN MALE/FEMALE ALDEX PLOTS
+pdf("aldex_plots_male_female_migrating_points.pdf")
+aldex.plot(isu.extreme.m.aldex,type="MW")
+par(new=TRUE)
+below <- which(isu.extreme.m.aldex$diff.btw <= 0)
+above <- which(isu.extreme.m.aldex$diff.btw > 0)
+plot(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% below)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% below)],pch=19,col=myblue)
+par(new=TRUE)
+plot(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% above)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% above)],pch=19,col=myred)
+par(new=FALSE)
+aldex.plot(isu.extreme.f.aldex,type="MW")
+par(new=TRUE)
+plot(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% below)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% below)],pch=19,col=myblue)
+par(new=TRUE)
+plot(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% above)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% above)],pch=19,col=myred)
+par(new=FALSE)
 dev.off()
 
 # MALE VS FEMALE ALDEX PLOTS
