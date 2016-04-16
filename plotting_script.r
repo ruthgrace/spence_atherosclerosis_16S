@@ -430,6 +430,19 @@ plot.aldex.volcano(data.frame(d.isu.extreme.f),as.character(groups.extreme.f))
 plot.aldex.volcano(data.frame(d.isu.intermediate.m),as.character(groups.intermediate.m))
 plot.aldex.volcano(data.frame(d.isu.intermediate.f),as.character(groups.intermediate.f))
 
+# male and female extreme together
+d.extreme <- data.frame(matrix(nrow=nrow(taxa.col),ncol=(ncol(d.extreme.m) + ncol(d.extreme.f))))
+rownames(d.extreme) <- rownames(taxa.col)
+d.extreme[,c(1:ncol(d.extreme.m))] <- d.extreme.m[match(rownames(d.extreme),rownames(d.extreme.m)),]
+d.extreme[,c((ncol(d.extreme.m)+1):ncol(d.extreme))] <- d.extreme.f[match(rownames(d.extreme),rownames(d.extreme.f)),]
+colnames(d.extreme) <- c(colnames(d.extreme.m),colnames(d.extreme.f))
+groups.extreme <- c(groups.extreme.m,groups.extreme.f)
+d.extreme.no.na <- apply(d.extreme,1:2,function(x) { if (is.na(x)) { return(0); } else { return(x); }})
+rownames(d.extreme.no.na) <- rownames(d.extreme)
+colnames(d.extreme.no.na) <- colnames(d.extreme)
+d.extreme <- d.extreme.no.na
+
+plot.aldex.volcano(data.frame(d.extreme),as.character(groups.extreme))
 dev.off()
 
 extreme.m.aldex <- aldex(data.frame(d.extreme.m),as.character(groups.extreme.m))
