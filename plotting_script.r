@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 library(zCompositions)
-# library(randomcoloR)
+library(randomcoloR)
 library(compositions)
 library(ALDEx2)
 library(stringr)
@@ -61,17 +61,60 @@ otu.tab <- otu.tab[,which(colnames(otu.tab) %in% rownames(metadata))]
 
 otu.tab <- as.matrix(t(otu.tab))
 
+otu.genus <- c(as.character(taxonomy))
+for (i in c(1:length(taxonomy))) {
+  otu.genus[i] <- paste(strsplit(otu.genus[i],c(";"))[[1]][6],collapse="")
+}
+
+otu.family <- c(as.character(taxonomy))
+for (i in c(1:length(taxonomy))) {
+  otu.family[i] <- paste(strsplit(otu.family[i],c(";"))[[1]][5],collapse="")
+}
+
+otu.tab.genus <- t(aggregate(t(otu.tab),by=list(otu.genus),sum))
+otu.tab.family <- t(aggregate(t(otu.tab),by=list(otu.family),sum))
+colnames(otu.tab.genus) <- otu.tab.genus["Group.1",]
+otu.tab.genus <- otu.tab.genus[c(2:nrow(otu.tab.genus)),]
+colnames(otu.tab.family) <- otu.tab.family["Group.1",]
+otu.tab.family <- otu.tab.family[c(2:nrow(otu.tab.family)),]
+otu.tab.genus <- as.data.frame(lapply(data.frame(otu.tab.genus),as.numeric))
+otu.tab.family <- as.data.frame(lapply(data.frame(otu.tab.family),as.numeric))
+
 # remove all features with less than 1% abundance in all samples
 otu.tab.sum <- apply(otu.tab,1,sum)
 otu.tab.sum.threshhold <- otu.tab.sum*0.01
 otu.tab.filter <- apply(otu.tab,2, function(x) { return(length(which(x > otu.tab.sum.threshhold))) } )
 otu.tab <- otu.tab[,which(otu.tab.filter > 0)]
 
+otu.tab.genus.sum <- apply(otu.tab.genus,1,sum)
+otu.tab.genus.sum.threshhold <- otu.tab.genus.sum*0.01
+otu.tab.genus.filter <- apply(otu.tab.genus,2, function(x) { return(length(which(x > otu.tab.genus.sum.threshhold))) } )
+otu.tab.genus <- otu.tab.genus[,which(otu.tab.genus.filter > 0)]
+otu.genus <- otu.genus[which(otu.tab.genus.filter > 0)]
+
+otu.tab.family.sum <- apply(otu.tab.family,1,sum)
+otu.tab.family.sum.threshhold <- otu.tab.family.sum*0.01
+otu.tab.family.filter <- apply(otu.tab.family,2, function(x) { return(length(which(x > otu.tab.family.sum.threshhold))) } )
+otu.tab.family <- otu.tab.family[,which(otu.tab.family.filter > 0)]
+otu.family <- otu.family[which(otu.tab.family.filter > 0)]
+
 taxonomy <- taxonomy[which(otu.tab.filter > 0)]
+taxonomy.genus <- rownames(otu.tab.genus)
+taxonomy.family <- rownames(otu.tab.family)
 
 otu.sum <- apply(otu.tab,2,sum)
 otu.tab <- otu.tab[,order(otu.sum,decreasing=TRUE)]
 taxonomy <- taxonomy[order(otu.sum,decreasing=TRUE)]
+
+otu.sum.genus <- apply(otu.tab.genus,2,sum)
+otu.tab.genus <- otu.tab.genus[,order(otu.sum.genus,decreasing=TRUE)]
+taxonomy.genus <- taxonomy.genus[order(otu.sum.genus,decreasing=TRUE)]
+rownames(otu.tab.genus) <- rownames(otu.tab)
+
+otu.sum.family <- apply(otu.tab.family,2,sum)
+otu.tab.family <- otu.tab.family[,order(otu.sum.family,decreasing=TRUE)]
+taxonomy.family <- taxonomy.family[order(otu.sum.family,decreasing=TRUE)]
+rownames(otu.tab.family) <- rownames(otu.tab)
 
 original.data <- otu.tab
 
@@ -87,12 +130,37 @@ extreme <- otu.tab[which(metadata$Standardized.Residual >= 2 | metadata$Standard
 # get all samples with residual scores between 1 and 2 and -1 and -2
 intermediate.top <- otu.tab[which(metadata$Standardized.Residual >= 1 & metadata$Standardized.Residual <2),]
 intermediate.bottom <- otu.tab[which(metadata$Standardized.Residual <= -1 & metadata$Standardized.Residual > -2),]
-intermediate <- intermediate <- t(data.frame(t(intermediate.top), t(intermediate.bottom), check.names=FALSE))
+intermediate <- t(data.frame(t(intermediate.top), t(intermediate.bottom), check.names=FALSE))
 #separate by sex
 extreme.m <- extreme[which(metadata[match(rownames(extreme),rownames(metadata)),"Sex"] == "M"),]
 extreme.f <- extreme[which(metadata[match(rownames(extreme),rownames(metadata)),"Sex"] == "F"),]
 intermediate.m <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "M"),]
 intermediate.f <- intermediate[which(metadata[match(rownames(intermediate),rownames(metadata)),"Sex"] == "F"),]
+
+# get all samples with residual scores > 2 and < -2 (2 stdev away from median)
+extreme.genus <- otu.tab.genus[which(metadata$Standardized.Residual >= 2 | metadata$Standardized.Residual <= -2),]
+# get all samples with residual scores between 1 and 2 and -1 and -2
+intermediate.top.genus <- otu.tab.genus[which(metadata$Standardized.Residual >= 1 & metadata$Standardized.Residual <2),]
+intermediate.bottom.genus <- otu.tab.genus[which(metadata$Standardized.Residual <= -1 & metadata$Standardized.Residual > -2),]
+intermediate.genus <- t(data.frame(t(intermediate.top.genus), t(intermediate.bottom.genus), check.names=FALSE))
+#separate by sex
+extreme.m.genus <- extreme.genus[which(metadata[match(rownames(extreme.genus),rownames(metadata)),"Sex"] == "M"),]
+extreme.f.genus <- extreme.genus[which(metadata[match(rownames(extreme.genus),rownames(metadata)),"Sex"] == "F"),]
+intermediate.m.genus <- intermediate.genus[which(metadata[match(rownames(intermediate.genus),rownames(metadata)),"Sex"] == "M"),]
+intermediate.f.genus <- intermediate.genus[which(metadata[match(rownames(intermediate.genus),rownames(metadata)),"Sex"] == "F"),]
+
+# get all samples with residual scores > 2 and < -2 (2 stdev away from median)
+extreme.family <- otu.tab.family[which(metadata$Standardized.Residual >= 2 | metadata$Standardized.Residual <= -2),]
+# get all samples with residual scores between 1 and 2 and -1 and -2
+intermediate.top.family <- otu.tab.family[which(metadata$Standardized.Residual >= 1 & metadata$Standardized.Residual <2),]
+intermediate.bottom.family <- otu.tab.family[which(metadata$Standardized.Residual <= -1 & metadata$Standardized.Residual > -2),]
+intermediate.family <- t(data.frame(t(intermediate.top.family), t(intermediate.bottom.family), check.names=FALSE))
+#separate by sex
+extreme.m.family <- extreme.family[which(metadata[match(rownames(extreme.family),rownames(metadata)),"Sex"] == "M"),]
+extreme.f.family <- extreme.family[which(metadata[match(rownames(extreme.family),rownames(metadata)),"Sex"] == "F"),]
+intermediate.m.family <- intermediate.family[which(metadata[match(rownames(intermediate.family),rownames(metadata)),"Sex"] == "M"),]
+intermediate.f.family <- intermediate.family[which(metadata[match(rownames(intermediate.family),rownames(metadata)),"Sex"] == "F"),]
+
 
 isu.tab <- isu.tab[,match(rownames(metadata),colnames(isu.tab))]
 isu.tab <- t(isu.tab)
@@ -114,12 +182,12 @@ make.groups <- function(mytable,metadata) {
   residuals <- metadata[match(rownames(mytable),rownames(metadata)),"Standardized.Residual"]
   mygroups[which(residuals <= -1)] <- "Protected"
   mygroups[which(residuals >= 1)] <- "Unexplained"
-  mygroups[which(residuals < 1 & residuals > -1)] <- "Explained"
+  mygroups[which(residuals < 1 & residuals > -1)] colnames "Explained"
   return(as.factor(mygroups))
 }
 
 groups.extreme.m <- make.groups(extreme.m,metadata)
-groups.extreme.f <- make.groups(extreme.f,metadata)
+groups.colnames.f <- make.groups(extreme.f,metadata)
 groups.intermediate.m <- make.groups(intermediate.m,metadata)
 groups.intermediate.f <- make.groups(intermediate.f,metadata)
 
@@ -133,6 +201,17 @@ d.isu.extreme.f <- t(isu.extreme.f)
 d.isu.intermediate.m <- t(isu.intermediate.m)
 d.isu.intermediate.f <- t(isu.intermediate.f)
 
+d.extreme.m.genus <- t(extreme.m.genus)
+d.extreme.f.genus <- t(extreme.f.genus)
+d.intermediate.m.genus <- t(intermediate.m.genus)
+d.intermediate.f.genus <- t(intermediate.f.genus)
+
+d.extreme.m.family <- t(extreme.m.family)
+d.extreme.f.family <- t(extreme.f.family)
+d.intermediate.m.family <- t(intermediate.m.family)
+d.intermediate.f.family <- t(intermediate.f.family)
+
+
 remove.zero.features <- function(mytable) {
   feature.sum <- apply(mytable,1,sum)
   mytable <- mytable[which(feature.sum > 0),]
@@ -144,26 +223,74 @@ d.extreme.f <- remove.zero.features(d.extreme.f)
 d.intermediate.m <- remove.zero.features(d.intermediate.m)
 d.intermediate.f <- remove.zero.features(d.intermediate.f)
 
+d.extreme.m.genus <- remove.zero.features(d.extreme.m.genus)
+d.extreme.f.genus <- remove.zero.features(d.extreme.f.genus)
+d.intermediate.m.genus <- remove.zero.features(d.intermediate.m.genus)
+d.intermediate.f.genus <- remove.zero.features(d.intermediate.f.genus)
+
+d.extreme.m.family <- remove.zero.family(d.extreme.m.family)
+d.extreme.f.family <- remove.zero.features(d.extreme.f.family)
+d.intermediate.m.family <- remove.zero.features(d.intermediate.m.family)
+d.intermediate.f.family <- remove.zero.features(d.intermediate.f.family)
+
 d.isu.extreme.m <- remove.zero.features(d.isu.extreme.m)
 d.isu.extreme.f <- remove.zero.features(d.isu.extreme.f)
 d.isu.intermediate.m <- remove.zero.features(d.isu.intermediate.m)
 d.isu.intermediate.f <- remove.zero.features(d.isu.intermediate.f)
 
+adjust.zeros <- function(mytable) {
+  if (length(which(mytable == 0)) > 0) {
+    return(t(cmultRepl(t(mytable),method="CZM")))
+  }
+  else {
+    return(mytable)
+  }
+}
 
 # adjust zeros
-d.extreme.m.adj.zero <- t(cmultRepl(t(d.extreme.m),method="CZM"))
-d.extreme.f.adj.zero <- t(cmultRepl(t(d.extreme.f),method="CZM"))
-d.intermediate.m.adj.zero <- t(cmultRepl(t(d.intermediate.m),method="CZM"))
-d.intermediate.f.adj.zero <- t(cmultRepl(t(d.intermediate.f),method="CZM"))
+d.extreme.m.adj.zero <- adjust.zeros(d.extreme.m)
+d.extreme.f.adj.zero <- adjust.zeros(d.extreme.f)
+d.intermediate.m.adj.zero <- adjust.zeros(d.intermediate.m)
+d.intermediate.f.adj.zero <- adjust.zeros(d.intermediate.f)
 
 d.extreme.m.names <- rownames(d.extreme.m.adj.zero)
 d.extreme.f.names <- rownames(d.extreme.f.adj.zero)
 d.intermediate.m.names <- rownames(d.intermediate.m.adj.zero)
 d.intermediate.f.names <- rownames(d.intermediate.f.adj.zero)
 
+d.extreme.m.genus.adj.zero <- adjust.zeros(d.extreme.m.genus)
+d.extreme.f.genus.adj.zero <- adjust.zeros(d.extreme.f.genus)
+d.intermediate.m.genus.adj.zero <- adjust.zeros(d.intermediate.m.genus)
+d.intermediate.f.genus.adj.zero <- adjust.zeros(d.intermediate.f.genus)
+
+d.extreme.m.genus.names <- rownames(d.extreme.m.genus.adj.zero)
+d.extreme.f.genus.names <- rownames(d.extreme.f.genus.adj.zero)
+d.intermediate.m.genus.names <- rownames(d.intermediate.m.genus.adj.zero)
+d.intermediate.f.genus.names <- rownames(d.intermediate.f.genus.adj.zero)
+
+d.extreme.m.family.adj.zero <- adjust.zeros(d.extreme.m.family)
+d.extreme.f.family.adj.zero <- adjust.zeros(d.extreme.f.family)
+d.intermediate.m.family.adj.zero <- adjust.zeros(d.intermediate.m.family)
+d.intermediate.f.family.adj.zero <- adjust.zeros(d.intermediate.f.family)
+
+d.extreme.m.family.names <- rownames(d.extreme.m.family.adj.zero)
+d.extreme.f.family.names <- rownames(d.extreme.f.family.adj.zero)
+d.intermediate.m.family.names <- rownames(d.intermediate.m.family.adj.zero)
+d.intermediate.f.family.names <- rownames(d.intermediate.f.family.adj.zero)
+
 taxa.col <- data.frame(otu.sp,otu.sp)
 colnames(taxa.col) <- c("taxon","color")
 taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
+
+taxa.col.genus <- data.frame(colnames(otu.tab.genus),colnames(otu.tab.genus))
+colnames(taxa.col.genus) <- c("taxon","color")
+taxa.col.genus[,2] <- distinctColorPalette(length(taxa.col.genus[,2]))
+rownames(taxa.col.genus) <- colnames(otu.tab.genus)
+
+taxa.col.family <- data.frame(colnames(otu.tab.family),colnames(otu.tab.family))
+colnames(taxa.col.family) <- c("taxon","color")
+taxa.col.family[,2] <- distinctColorPalette(length(taxa.col.family[,2]))
+rownames(taxa.col.family) <- colnames(otu.tab.family)
 
 get.conds.df <- function(mygroups) {
   conds <- data.frame(as.character(mygroups))
@@ -217,6 +344,16 @@ d.extreme.f.clr <- plot.biplot(d.extreme.f.adj.zero,col.extreme.f,groups.extreme
 d.intermediate.m.clr <- plot.biplot(d.intermediate.m.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
 d.intermediate.f.clr <- plot.biplot(d.intermediate.f.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
 
+d.extreme.m.genus.clr <- plot.biplot(d.extreme.m.genus.adj.zero,col.extreme.m,groups.extreme.m,c("darkblue","darkred"))
+d.extreme.f.genus.clr <- plot.biplot(d.extreme.f.genus.adj.zero,col.extreme.f,groups.extreme.f,c("darkblue","darkred"))
+d.intermediate.m.genus.clr <- plot.biplot(d.intermediate.m.genus.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
+d.intermediate.f.genus.clr <- plot.biplot(d.intermediate.f.genus.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
+
+d.extreme.m.family.clr <- plot.biplot(d.extreme.m.family.adj.zero,col.extreme.m,groups.extreme.m,c("darkblue","darkred"))
+d.extreme.f.family.clr <- plot.biplot(d.extreme.f.family.adj.zero,col.extreme.f,groups.extreme.f,c("darkblue","darkred"))
+d.intermediate.m.family.clr <- plot.biplot(d.intermediate.m.family.adj.zero,col.intermediate.m,groups.intermediate.m,c("blue","red"))
+d.intermediate.f.family.clr <- plot.biplot(d.intermediate.f.family.adj.zero,col.intermediate.f,groups.intermediate.f,c("blue","red"))
+
 dev.off()
 
 plot.dendogram.barplot <- function(d.clr, d.adj.zero, taxa.col, d.names, groups) {
@@ -246,6 +383,16 @@ plot.dendogram.barplot(d.extreme.m.clr, d.extreme.m.adj.zero, taxa.col,d.extreme
 plot.dendogram.barplot(d.extreme.f.clr, d.extreme.f.adj.zero, taxa.col,d.extreme.f.names,groups.extreme.f)
 plot.dendogram.barplot(d.intermediate.m.clr, d.intermediate.m.adj.zero, taxa.col,d.intermediate.m.names,groups.intermediate.m)
 plot.dendogram.barplot(d.intermediate.f.clr, d.intermediate.f.adj.zero, taxa.col,d.intermediate.f.names,groups.intermediate.f)
+
+plot.dendogram.barplot(d.extreme.m.genus.clr, d.extreme.m.genus.adj.zero, taxa.col.genus,d.extreme.m.genus.names,groups.extreme.m)
+plot.dendogram.barplot(d.extreme.f.genus.clr, d.extreme.f.genus.adj.zero, taxa.col.genus,d.extreme.f.genus.names,groups.extreme.f)
+plot.dendogram.barplot(d.intermediate.m.genus.clr, d.intermediate.m.genus.adj.zero, taxa.col.genus,d.intermediate.m.genus.names,groups.intermediate.m)
+plot.dendogram.barplot(d.intermediate.f.genus.clr, d.intermediate.f.genus.adj.zero, taxa.col.genus,d.intermediate.f.genus.names,groups.intermediate.f)
+
+plot.dendogram.barplot(d.extreme.m.family.clr, d.extreme.m.family.adj.zero, taxa.col.family,d.extreme.m.family.names,groups.extreme.m)
+plot.dendogram.barplot(d.extreme.f.family.clr, d.extreme.f.family.adj.zero, taxa.col.family,d.extreme.f.family.names,groups.extreme.f)
+plot.dendogram.barplot(d.intermediate.m.family.clr, d.intermediate.m.family.adj.zero, taxa.col.family,d.intermediate.m.family.names,groups.intermediate.m)
+plot.dendogram.barplot(d.intermediate.f.family.clr, d.intermediate.f.family.adj.zero, taxa.col.family,d.intermediate.f.genus.names,groups.intermediate.f)
 
 dev.off()
 
