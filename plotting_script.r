@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 library(zCompositions)
-library(randomcoloR)
+# library(randomcoloR)
 library(compositions)
 library(ALDEx2)
 library(stringr)
@@ -182,12 +182,12 @@ make.groups <- function(mytable,metadata) {
   residuals <- metadata[match(rownames(mytable),rownames(metadata)),"Standardized.Residual"]
   mygroups[which(residuals <= -1)] <- "Protected"
   mygroups[which(residuals >= 1)] <- "Unexplained"
-  mygroups[which(residuals < 1 & residuals > -1)] colnames "Explained"
+  mygroups[which(residuals < 1 & residuals > -1)] <- "Explained"
   return(as.factor(mygroups))
 }
 
 groups.extreme.m <- make.groups(extreme.m,metadata)
-groups.colnames.f <- make.groups(extreme.f,metadata)
+groups.extreme.f <- make.groups(extreme.f,metadata)
 groups.intermediate.m <- make.groups(intermediate.m,metadata)
 groups.intermediate.f <- make.groups(intermediate.f,metadata)
 
@@ -228,7 +228,7 @@ d.extreme.f.genus <- remove.zero.features(d.extreme.f.genus)
 d.intermediate.m.genus <- remove.zero.features(d.intermediate.m.genus)
 d.intermediate.f.genus <- remove.zero.features(d.intermediate.f.genus)
 
-d.extreme.m.family <- remove.zero.family(d.extreme.m.family)
+d.extreme.m.family <- remove.zero.features(d.extreme.m.family)
 d.extreme.f.family <- remove.zero.features(d.extreme.f.family)
 d.intermediate.m.family <- remove.zero.features(d.intermediate.m.family)
 d.intermediate.f.family <- remove.zero.features(d.intermediate.f.family)
@@ -291,16 +291,16 @@ d.isu.intermediate.f.names <- rownames(d.isu.intermediate.f.adj.zero)
 
 taxa.col <- data.frame(otu.sp,otu.sp)
 colnames(taxa.col) <- c("taxon","color")
-taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
+# taxa.col[,2] <- distinctColorPalette(length(taxa.col[,2]))
 
 taxa.col.genus <- data.frame(colnames(otu.tab.genus),colnames(otu.tab.genus))
 colnames(taxa.col.genus) <- c("taxon","color")
-taxa.col.genus[,2] <- distinctColorPalette(length(taxa.col.genus[,2]))
+# taxa.col.genus[,2] <- distinctColorPalette(length(taxa.col.genus[,2]))
 rownames(taxa.col.genus) <- colnames(otu.tab.genus)
 
 taxa.col.family <- data.frame(colnames(otu.tab.family),colnames(otu.tab.family))
 colnames(taxa.col.family) <- c("taxon","color")
-taxa.col.family[,2] <- distinctColorPalette(length(taxa.col.family[,2]))
+# taxa.col.family[,2] <- distinctColorPalette(length(taxa.col.family[,2]))
 rownames(taxa.col.family) <- colnames(otu.tab.family)
 
 get.conds.df <- function(mygroups) {
@@ -393,24 +393,24 @@ plot.dendogram.barplot <- function(d.clr, d.adj.zero, taxa.col, d.names, groups)
   legend(x="center", legend=taxa.col[match(d.names,rownames(taxa.col)),1], col=as.character(taxa.col[match(d.names,rownames(taxa.col)),2]), lwd=5, cex=.3, border=NULL,ncol=3)
 }
 
-pdf("dendogram_barplot.pdf")
-
-plot.dendogram.barplot(d.extreme.m.clr, d.extreme.m.adj.zero, taxa.col,d.extreme.m.names,groups.extreme.m)
-plot.dendogram.barplot(d.extreme.f.clr, d.extreme.f.adj.zero, taxa.col,d.extreme.f.names,groups.extreme.f)
-plot.dendogram.barplot(d.intermediate.m.clr, d.intermediate.m.adj.zero, taxa.col,d.intermediate.m.names,groups.intermediate.m)
-plot.dendogram.barplot(d.intermediate.f.clr, d.intermediate.f.adj.zero, taxa.col,d.intermediate.f.names,groups.intermediate.f)
-
-plot.dendogram.barplot(d.extreme.m.genus.clr, d.extreme.m.genus.adj.zero, taxa.col.genus,d.extreme.m.genus.names,groups.extreme.m)
-plot.dendogram.barplot(d.extreme.f.genus.clr, d.extreme.f.genus.adj.zero, taxa.col.genus,d.extreme.f.genus.names,groups.extreme.f)
-plot.dendogram.barplot(d.intermediate.m.genus.clr, d.intermediate.m.genus.adj.zero, taxa.col.genus,d.intermediate.m.genus.names,groups.intermediate.m)
-plot.dendogram.barplot(d.intermediate.f.genus.clr, d.intermediate.f.genus.adj.zero, taxa.col.genus,d.intermediate.f.genus.names,groups.intermediate.f)
-
-plot.dendogram.barplot(d.extreme.m.family.clr, d.extreme.m.family.adj.zero, taxa.col.family,d.extreme.m.family.names,groups.extreme.m)
-plot.dendogram.barplot(d.extreme.f.family.clr, d.extreme.f.family.adj.zero, taxa.col.family,d.extreme.f.family.names,groups.extreme.f)
-plot.dendogram.barplot(d.intermediate.m.family.clr, d.intermediate.m.family.adj.zero, taxa.col.family,d.intermediate.m.family.names,groups.intermediate.m)
-plot.dendogram.barplot(d.intermediate.f.family.clr, d.intermediate.f.family.adj.zero, taxa.col.family,d.intermediate.f.genus.names,groups.intermediate.f)
-
-dev.off()
+# pdf("dendogram_barplot.pdf")
+# 
+# plot.dendogram.barplot(d.extreme.m.clr, d.extreme.m.adj.zero, taxa.col,d.extreme.m.names,groups.extreme.m)
+# plot.dendogram.barplot(d.extreme.f.clr, d.extreme.f.adj.zero, taxa.col,d.extreme.f.names,groups.extreme.f)
+# plot.dendogram.barplot(d.intermediate.m.clr, d.intermediate.m.adj.zero, taxa.col,d.intermediate.m.names,groups.intermediate.m)
+# plot.dendogram.barplot(d.intermediate.f.clr, d.intermediate.f.adj.zero, taxa.col,d.intermediate.f.names,groups.intermediate.f)
+# 
+# plot.dendogram.barplot(d.extreme.m.genus.clr, d.extreme.m.genus.adj.zero, taxa.col.genus,d.extreme.m.genus.names,groups.extreme.m)
+# plot.dendogram.barplot(d.extreme.f.genus.clr, d.extreme.f.genus.adj.zero, taxa.col.genus,d.extreme.f.genus.names,groups.extreme.f)
+# plot.dendogram.barplot(d.intermediate.m.genus.clr, d.intermediate.m.genus.adj.zero, taxa.col.genus,d.intermediate.m.genus.names,groups.intermediate.m)
+# plot.dendogram.barplot(d.intermediate.f.genus.clr, d.intermediate.f.genus.adj.zero, taxa.col.genus,d.intermediate.f.genus.names,groups.intermediate.f)
+# 
+# plot.dendogram.barplot(d.extreme.m.family.clr, d.extreme.m.family.adj.zero, taxa.col.family,d.extreme.m.family.names,groups.extreme.m)
+# plot.dendogram.barplot(d.extreme.f.family.clr, d.extreme.f.family.adj.zero, taxa.col.family,d.extreme.f.family.names,groups.extreme.f)
+# plot.dendogram.barplot(d.intermediate.m.family.clr, d.intermediate.m.family.adj.zero, taxa.col.family,d.intermediate.m.family.names,groups.intermediate.m)
+# plot.dendogram.barplot(d.intermediate.f.family.clr, d.intermediate.f.family.adj.zero, taxa.col.family,d.intermediate.f.genus.names,groups.intermediate.f)
+# 
+# dev.off()
 
 plot.aldex.volcano <- function(d.aldex,d.conds) {
   x <- aldex.clr(d.aldex, mc.samples=128, verbose=FALSE)
@@ -483,11 +483,13 @@ isu.intermediate.f.aldex <- aldex(data.frame(d.isu.intermediate.f),as.character(
 d.isu.extreme.m.filter <- apply(d.isu.extreme.m.clr,2,function(x) { return(length(which(x <= 0))); })
 threshhold <- round(nrow(d.isu.extreme.m.clr)*2/3)
 d.isu.extreme.m.rare <- d.isu.extreme.m[which(d.isu.extreme.m.filter <= threshhold),]
+rownames(d.isu.extreme.m.rare) <- rownames(d.isu.extreme.m)[which(d.isu.extreme.m.filter <= threshhold)]
 
 d.isu.extreme.f.filter <- apply(d.isu.extreme.f.clr,2,function(x) { return(length(which(x <= 0))); })
 threshhold <- round(nrow(d.isu.extreme.f.clr)*2/3)
 d.isu.extreme.f.rare <- d.isu.extreme.f[which(d.isu.extreme.f.filter <= threshhold),]
-rownames(d.isu.extreme.f.rare) <- 
+rownames(d.isu.extreme.f.rare) <- rownames(d.isu.extreme.f)[which(d.isu.extreme.f.filter <= threshhold)]
+
 isu.extreme.m.rare.aldex <- aldex(data.frame(d.isu.extreme.m.rare),as.character(groups.extreme.m))
 isu.extreme.f.rare.aldex <- aldex(data.frame(d.isu.extreme.f.rare),as.character(groups.extreme.f))
 
@@ -549,19 +551,13 @@ myblue <- rgb(red/255, green/255, blue/255, 0.3)
 # MIGRATING POINTS BETWEEN MALE/FEMALE ALDEX PLOTS
 pdf("aldex_plots_male_female_migrating_points.pdf")
 aldex.plot(isu.extreme.m.aldex,type="MW")
-par(new=TRUE)
 below <- which(isu.extreme.m.aldex$diff.btw <= 0)
 above <- which(isu.extreme.m.aldex$diff.btw > 0)
-plot(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% below)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% below)],pch=19,col=myblue)
-par(new=TRUE)
-plot(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% above)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% above)],pch=19,col=myred)
-par(new=FALSE)
+points(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% below)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% below)],pch=19,col=myblue)
+points(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% above)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% above)],pch=19,col=myred)
 aldex.plot(isu.extreme.f.aldex,type="MW")
-par(new=TRUE)
-plot(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% below)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% below)],pch=19,col=myblue)
-par(new=TRUE)
-plot(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% above)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% above)],pch=19,col=myred)
-par(new=FALSE)
+points(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% below)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% below)],pch=19,col=myblue)
+points(isu.extreme.f.aldex$diff.win[which(rownames(isu.extreme.f.aldex) %in% above)], isu.extreme.f.aldex$diff.btw[which(rownames(isu.extreme.f.aldex) %in% above)],pch=19,col=myred)
 dev.off()
 
 # MALE VS FEMALE ALDEX PLOTS
