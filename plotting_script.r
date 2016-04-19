@@ -551,8 +551,8 @@ myblue <- rgb(red/255, green/255, blue/255, 0.3)
 # MIGRATING POINTS BETWEEN MALE/FEMALE ALDEX PLOTS
 pdf("aldex_plots_male_female_migrating_points.pdf")
 aldex.plot(isu.extreme.m.aldex,type="MW")
-below <- which(isu.extreme.m.aldex$diff.btw <= 0)
-above <- which(isu.extreme.m.aldex$diff.btw > 0)
+below <- rownames(isu.extreme.m.aldex)[which(isu.extreme.m.aldex$diff.btw <= 0)]
+above <- rownames(isu.extreme.m.aldex)[which(isu.extreme.m.aldex$diff.btw > 0)]
 points(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% below)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% below)],pch=19,col=myblue)
 points(isu.extreme.m.aldex$diff.win[which(rownames(isu.extreme.m.aldex) %in% above)], isu.extreme.m.aldex$diff.btw[which(rownames(isu.extreme.m.aldex) %in% above)],pch=19,col=myred)
 aldex.plot(isu.extreme.f.aldex,type="MW")
